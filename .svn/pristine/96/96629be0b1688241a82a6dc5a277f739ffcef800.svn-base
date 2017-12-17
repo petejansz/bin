@@ -1,2 +1,0 @@
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" );
-lib1.getAdminEnums();
