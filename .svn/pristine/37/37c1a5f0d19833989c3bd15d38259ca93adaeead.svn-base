@@ -1,0 +1,28 @@
+// http://nodejs.org/api.html#_child_processes
+//var sys = require( 'sys' )
+// var exec = require( 'child_process' ).exec;
+// var child;
+// executes `pwd`
+// child = exec( "pwd", function ( error, stdout, stderr )
+// {
+//     console.log( 'stdout: ' + stdout );
+//     console.log( 'stderr: ' + stderr );
+//     if ( error !== null )
+//     {
+//         console.log( 'exec error: ' + error );
+//     }
+// } );
+// or more concisely
+//var sys = require( 'sys' )
+var username = 'sandeep.lakhanpal@yopmail.com';
+var baseCommand = "powershell -nologo pdplayer.ps1 -hostname cadev1 -port 80 -logintoken ";
+var oauthToken;
+const {exec} = require( 'child_process' );
+exec(baseCommand + username, (err, stdout, stderr) =>
+{
+    oauthToken = stdout.toString().replace(/\r?\n|\r/g, '');
+});
+
+    console.log( oauthToken ) ;
+
+

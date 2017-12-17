@@ -1,0 +1,3 @@
+var filename = 'C:/Users/pjansz/Documents/pd/california/components/admin/admin-frontend/src/main/webapp/pd2-admin-rest-admin-search-players-by-city-los-angeles.json';
+var content = require(filename);
+var jsonObj = JSON.parse(JSON.stringify(content));

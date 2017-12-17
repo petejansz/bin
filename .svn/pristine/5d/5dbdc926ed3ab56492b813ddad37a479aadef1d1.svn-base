@@ -1,0 +1,91 @@
+/*
+  NodeJS command-line interface to pd-crm-processess processes/update-player-data REST function.
+  Author: Pete Jansz
+*/
+
+var path = require( 'path' );
+var http = require( "http" );
+var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' );
+var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" );
+
+program
+    .version( '0.0.1' )
+    .description( 'CLI to pd-crm-processess processes/update-player-data' )
+    .usage( 'processes-update-playerinfo -i <playerId> -h <hostname>' )
+    .option( '-h, --hostname <hostname>', 'Hostname' )
+    .option( '-j, --jsonfile <jsonfile>', 'JSON file' )
+    .parse( process.argv );
+
+var exitValue = 0;
+
+if ( !program.hostname || !program.jsonfile )
+{
+    program.help();
+    process.exit( 1 );
+}
+
+var siteID = 35;
+var systemId = 8;
+var channelId = 2;
+
+var jsonBody = require( program.jsonfile );
+
+jsonBody.callerChannelId = channelId;
+jsonBody.callingClientId = '127.0.0.1';
+jsonBody.callerSystemId = systemId;
+jsonBody.transactionIdBase = lib1.generateUUID();
+jsonBody.transactionTime = new Date().valueOf();
+jsonBody.siteID = siteID;
+//jsonBody.playerId = playerId;
+//jsonBody.playerUpdate.playerId = playerId;
+
+var options = {
+    "method": "POST",
+    "hostname": program.hostname,
+    "port": 8180,
+    "path": "/california/api/v1/processes/update-player-data",
+    "headers": {
+        "x-player-id": jsonBody.playerUpdate.playerId,
+        "x-site-id": jsonBody.siteID,
+        "x-channel-id": jsonBody.callerChannelId,
+        "x-ex-system-id": jsonBody.callerSystemId,
+        "x-client-id": jsonBody.callingClientId,
+        "x-unique-id": "V6Cypgr-Um0AAAdzZasdcvbdsb",
+        "content-type": "application/json;charset=UTF-8",
+        "accept-language": "en-US,en;q=0.8,mt;q=0.6",
+        "accept-encoding": "gzip, deflate, br",
+        "accept": "application/json, text/javascript, */*; q=0.01",
+        "cache-control": "no-cache",
+    }
+};
+
+var req = http.request( options, function ( res )
+{
+    var chunks = [];
+
+    res.on( "data", function ( chunk )
+    {
+        chunks.push( chunk );
+    } );
+
+    res.on( "end", function ()
+    {
+        var responseBodyBuffer = Buffer.concat( chunks );
+        var responseBodyStr = responseBodyBuffer.toString();
+        var responseBodyJSON = JSON.parse( responseBodyStr );
+        var errorEncountered = responseBodyJSON.errorEncountered == true;
+        if ( errorEncountered )
+        {
+            exitValue = 1;
+            console.log( 'errorEncountered: ' + errorEncountered
+                + ", errorCode: " + responseBodyJSON.errorCode
+                + ", transactionIdBase: " + jsonBody.transactionIdBase
+            );
+        }
+
+        process.exit( exitValue );
+    } );
+} );
+
+req.write( JSON.stringify( jsonBody ) );
+req.end();

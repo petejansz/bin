@@ -1,0 +1,177 @@
+<#
+    Help build, deploy various california EAR, WAR files.
+    Author: Pete Jansz, IGT, June 2017
+#>
+
+param
+(
+    [switch]    $core,
+    [switch]    $pdadmin,
+    [switch]    $proc,
+    [string]    $caVersion,
+    [string]    $caHome,
+    [string]    $pd2Home,
+    [switch]    $push,
+    [switch]    $help,
+    [switch]    $h
+)
+
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+Set-PSDebug -Off #-Trace 2
+$whereWasI = $pwd
+
+trap [Exception]
+{
+    [Console]::Error.WriteLine($_.Exception);
+    Set-Location $whereWasI
+}
+
+$ScriptName = $MyInvocation.MyCommand.Name
+
+function showHelp()
+{
+    Write-Output "USAGE: $ScriptName [option] -core | -pdadmin | -proc"
+    Write-Output "  option"
+    Write-Output '    -caVersion <version> default = $env:CA_VERSION'
+    Write-Output "    -caHome    <path>"
+    Write-Output "    -pd2Home   <path>"
+    Write-Output "    -push              # Push to remote dev host"
+    exit 1
+}
+
+if ($h -or $help) {showHelp}
+if ( -not($core) -and -not($pdadmin) -and -not($proc) ) {showHelp}
+if (-not $env:JBOSS_HOME)
+{
+    Write-Warning 'Not defined: $env:JBOSS_HOME'
+    exit 1
+}
+
+if (-not ($caVersion))
+{
+    if ( $env:CA_VERSION )
+    {
+        $caVersion = $env:CA_VERSION
+    }
+    else
+    {
+        Write-Warning 'Not defined: $env:CA_VERSION'
+        exit 1
+    }
+}
+if (-not ($caHome -and (Test-Path $caHome )))
+{
+    $caHome = $env:CA
+}
+
+if (-not ($pd2Home -and (Test-Path $pd2Home )))
+{
+    $pd2Home = $env:PD2
+}
+function extractFromArtifact([string]$artifactName, [string]$fileToExtract)
+{
+    jar xvf $artifactName $fileToExtract
+}
+function deployArtifact([string] $buildTargetDir, [string] $artifactName, [string] $serverName)
+{
+    "Deploy ${buildTargetDir}/${artifactName} $env:JBOSS_HOME/server/${serverName}/deploy/."
+    Copy-Item "${buildTargetDir}/${artifactName}" "$env:JBOSS_HOME/server/${serverName}/deploy/."
+}
+
+function pushToDev([string]$artifact, [string]$hostname, [string]$targetDir)
+{
+    if ($push)
+    {
+        pscp -pw "pilot12" $artifact "pilot@${hostname}:$targetDir/."
+    }
+}
+function build( $componentPaths )
+{
+    foreach ($componentPath in $componentPaths)
+    {
+        Write-Host "Building ${componentPath} ..."
+        Set-Location $componentPath
+        mvn -DskipTests clean package install | Out-File -Encoding UTF8 -Force "build.log"
+
+        if (-not ($?))
+        {
+            Write-Warning "Build ${componentPath} failed"
+            Get-Content "build.log"
+            exit 1;
+        }
+    }
+}
+
+function doAdminFrontend()
+{
+    # Build california-admin-frontend WAR:
+    $componentPaths = @("$caHome/components/admin/admin-frontend")
+    build $componentPaths
+    $targetDir = "$caHome/components/admin/admin-frontend/target"
+    deployArtifact $targetDir "california-admin-frontend-${caVersion}.war" "pd2-admin-rest"
+    $artifact = "{0}/{1}" -f $targetDir, "california-admin-frontend-${caVersion}.war"
+    $pushOutput = pushToDev $artifact "pdadmin" "/tmp/server/pd2-admnin-rest/deploy/"
+    $pushOutput | Out-Null
+
+    # Build california-admin-rest-app EAR:
+    $componentPaths = @("$caHome/components/admin/admin-rest")
+    # build $componentPaths
+    $targetDir = "$caHome/components/admin/admin-rest/admin-rest-application/target"
+    # deployArtifact $targetDir "california-admin-rest-app-${caVersion}.ear" "pd2-admin-rest"
+    $artifact = "{0}/{1}" -f $targetDir, "california-admin-rest-app-${caVersion}.ear"
+    #pushToDev $artifact "pdadmin" "/tmp/server/pd2-admnin-rest/deploy/"
+
+    # $pushOutput | Out-Null
+    Write-Output "Deployed!"
+    #Start-Sleep 7
+    #my-pd-admin "http://localhost:8380/admin-ui/admin_dev.html#players/1000000445/profile"
+    #my-pd-admin "http://localhost:8380/admin-ui/admin_dev.html#search-players"
+}
+
+function doCrmCore()
+{
+    # Member of crm-core/deploy/california-crm-connector-app-2.0.15.0-SNAPSHOT.ear
+    $componentPaths = @("$caHome/components/crm-connector/crm-connector-application")
+
+    # Member of crm-core/deploy/california-pd-crm-adapter-app-2.0.15.0-SNAPSHOT.ear
+    $componentPaths += "$pd2Home/components/connectors/crm-notifications-connector-api"
+    $componentPaths += "$pd2Home/components/connectors/crm-notifications-connector-impl"
+    $componentPaths += "$caHome/components/pd-crm-adapter"
+
+    build $componentPaths
+    $targetDir = "$caHome/components/crm-connector/crm-connector-application/target"
+    deployArtifact $targetDir "california-crm-connector-app-${caVersion}.ear" "crm-core"
+    $artifact = "{0}/{1}" -f $targetDir, "california-crm-connector-app-${caVersion}.ear"
+    pushToDev $artifact "pdcore" "/tmp/server/crm-core/deploy/."
+
+    $targetDir = "$caHome/components/pd-crm-adapter/pd-crm-adapter-application/target"
+    deployArtifact $targetDir "california-pd-crm-adapter-app-${caVersion}.ear" "crm-core"
+    $artifact = "{0}/{1}" -f $targetDir, "california-pd-crm-adapter-app-${caVersion}.ear"
+    pushToDev $artifact "pdcore" "/tmp/server/crm-core/deploy/."
+}
+function doPdCrmProcesses()
+{
+    # Member of pd-crm-processes/deploy/california-pd-crm-processes-app-2.0.15.0-SNAPSHOT.ear
+    $componentPaths = @("$pd2Home/components/pd-crm-processes/processes-commons")
+    $componentPaths += "$pd2Home/components/pd-crm-processes/processor-core"
+    $componentPaths += "$pd2Home/components/pd-crm-processes/processes/closeaccount-process"
+    $componentPaths += "$pd2Home/components/pd-crm-processes/processes/contactverification-process"
+
+    $componentPaths += "$caHome/components/pd-crm-processes/ca-processes/ca-contactverification-process"
+    $componentPaths += "$caHome/components/pd-crm-processes/pd-crm-processes-camel-context"
+    $componentPaths += "$caHome/components/pd-crm-processes"
+
+    build $componentPaths
+    $targetDir = "$caHome/components/pd-crm-processes/pd-crm-processes-application/target"
+    deployArtifact $targetDir "california-pd-crm-processes-app-${caVersion}.ear" "pd-crm-processes"
+    $artifact = "{0}/{1}" -f $targetDir, "california-pd-crm-processes-app-${caVersion}.ear"
+    pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy/."
+}
+
+Write-Output "CA Version: ${caVersion}"
+if ($pdadmin)   {doAdminFrontend}
+if ($core)      {doCrmCore}
+if ($proc)      {doPdCrmProcesses}
+
+Set-Location $whereWasI

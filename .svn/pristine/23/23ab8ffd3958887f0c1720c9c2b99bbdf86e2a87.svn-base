@@ -1,0 +1,46 @@
+/*
+  NodeJS command-line interface to pd2-admin close-account REST function.
+  Author: Pete Jansz, IGT 2017
+*/
+
+var http = require( "http" );
+
+var myArgs = process.argv.slice( 2 )
+var contractId = myArgs[0];
+var hostname = myArgs[1];
+var port = myArgs[2];
+if ( contractId == null || hostname == null || port == null )
+{
+  console.log( "USAGE: node pd-admin-close-account.js contractId hostname port" );
+  process.exit( 1 );
+}
+
+var options = {
+  "method": "PUT",
+  "hostname": hostname, // pd2-admin-rest host
+  "port": port,         // localhost (8380), cadev-pdadmin (8280)
+  "path": "/california-admin-rest/api/v1/admin/players/" + contractId + "/closeaccount",
+  "headers": {
+    "content-type": "application/json",
+    "cache-control": "no-cache"
+  }
+};
+
+var req = http.request( options, function ( res )
+{
+  var chunks = [];
+
+  res.on( "data", function ( chunk )
+  {
+    chunks.push( chunk );
+  } );
+
+  res.on( "end", function ()
+  {
+    var body = Buffer.concat( chunks );
+    console.log( body.toString() );
+  } );
+} );
+
+req.write( JSON.stringify( { contractId: contractId, reason: 'Close this account' } ) );
+req.end();

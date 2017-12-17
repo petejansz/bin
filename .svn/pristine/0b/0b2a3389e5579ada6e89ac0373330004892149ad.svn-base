@@ -1,0 +1,125 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "get-attributes",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/get-attributes.js",
+            "args": [ "-h", "cadev1", "-u", "test5@yopmail.com", "-p", "RegTest6100" ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "try-nodejs-db2.js",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/try-nodejs-db2.js",
+            "args": [
+                "-h", "156.24.32.127",
+                "-p", "55000",
+                "-u", "b2cinst1",
+                "-P", "b2cinst1",
+                "-f", "../pd/sql/test.sql"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "protocol": "inspector",
+            "name": "Create-note",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "-h", "localhost",
+                "-i", "1000004997"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Search-players",
+            "program": "${file}",
+            "args": [
+                "-h",
+                "pdadmin",
+                "--email",
+                "zzzz%"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "admin-get-playerid",
+            "program": "${workspaceFolder}/admin-get-playerid.js",
+            "args": [
+                "-h", "localhost", "-p", "8380", "-u", "test889@yopmail.com"
+            ]
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PS pdplayer",
+            "script": "${file}",
+            "args": [
+                "-reg",
+                "./dfoo.csv",
+                "-hostname",
+                "cadev1",
+                "-username",
+                "DFOOZOVINAR.KALFAYAN@yopmail.com"
+            ],
+            "cwd": "C:/Users/pjansz/Documents/pd/reg-users"
+        },
+        {
+            //register-players -csv .\foo.csv -hostname cadev1 -port 80 -reg -go
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PS register-players",
+            "script": "${file}",
+            "args": [
+                "-csvfile",
+                "./afoo.csv-bak.csv",
+                "-hostname",
+                "cadev1",
+                "-port",
+                "80",
+                "-act",
+                "-go"
+            ],
+            "cwd": "C:/Users/pjansz/Documents/pd/reg-users"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PS Launch Current File",
+            "script": "${file}",
+            "args": [ "-csvfile", "C:/Users/pjansz/Documents/pd/california/apl/2017.csv"],
+            "cwd": "${file}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PS Launch Current File w/Args Prompt",
+            "script": "${file}",
+            "args": [
+                "${command:SpecifyScriptArgs}"
+            ],
+            "cwd": "${file}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "attach",
+            "name": "PowerShell Attach to Host Process",
+            "processId": "${command:PickPSHostProcess}",
+            "runspaceId": 1
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PowerShell Interactive Session",
+            "cwd": "${workspaceRoot}"
+        }
+    ]
+}

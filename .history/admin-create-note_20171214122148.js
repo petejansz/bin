@@ -1,0 +1,55 @@
+var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request' )
+var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
+var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" )
+var path = require( 'path' )
+var util = require( 'util' )
+var scriptName = path.basename( __filename )
+
+program
+.version( '0.0.1' )
+.description( 'CLI to pdadmin-rest create note' )
+.usage( 'ARGS' )
+.option( '-i, --playerId [playerId]', 'PlayerId' )
+.option( '-p, --port [port]', 'Port number', parseInt )
+.option( '-h, --hostname <hostname>', 'Hostname' )
+.parse( process.argv )
+
+process.exitCode = 1
+
+if ( !program.hostname )
+{
+    program.help()
+}
+
+var port = program.port ? program.port : lib1.adminPort
+var urlFormat = 'http://%s:%s/california-admin-rest/api/v1/admin/players/%s/note'
+var url = util.format(urlFormat, program.hostname, port, program.playerId)
+var options =
+{
+    method: 'POST',
+    url: url,
+    headers: lib1.adminHeaders,
+    referer:  lib1.getFirstIPv4Address(),
+    dnt: '1',
+    body:
+    {
+        displayAlert: false,
+        note: 'Make a note.',
+        user: 'administrator',
+        creationDate: new Date().getTime()
+    },
+    json: true
+}
+
+options.headers.authorization = 'ESMS 6JCYV4DO0H7O7BA3OSPAHU0OND4PN0'
+
+request( options, function ( error, response, body )
+{
+    if ( error )
+    {
+        throw new Error( error )
+    }
+
+    str_to_stream( body ).pipe( process.stdout )
+    process.exitCode = 0
+} )

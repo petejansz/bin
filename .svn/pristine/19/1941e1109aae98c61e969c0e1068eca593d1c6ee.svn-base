@@ -1,0 +1,110 @@
+param
+(
+    [array]$servers,
+    [string]$jbt = $env:JBOSS_HOME,
+    [switch]$doBuild = $False,
+    [switch]$v = $False,
+    [string]$passwd = "pilot12",
+    [string]$version = '2.0.15.0',
+    [switch]$help,
+    [switch]$h
+)
+
+$ErrorActionPreference = "stop"
+Set-StrictMode -Version Latest
+Set-PSDebug -Off #-Trace 2
+#Set-PSDebug -Trace 2
+
+$ScriptName = $MyInvocation.MyCommand.Name
+$ScriptDir = Split-Path $MyInvocation.MyCommand.Path
+
+function showHelp()
+{
+    Write-Host "USAGE: ${ScriptName} [options] -servers @(server1, server2, ...)"
+    Write-Host "options:"
+    Write-Host "  -doBuild"
+    Write-Host '  -jbt  # Jboss Target, e.g., "pilot@pdcore:/tmp" default=$env:JBOSS_HOME'
+    Write-Host "  -passwd <passwd>"
+    Write-Host "  -v    # Verbose"
+    Write-Host '  -version <version default = 2.0.15.0>'
+    exit 1
+}
+
+if ($h -or $help)   {showHelp}
+
+if (-not($servers) -or $servers.length -eq 0)
+{
+    showHelp
+}
+
+function deploy( [string]$ear, [string]$targetPath )
+{
+    if ($targetPath -match "pilot")
+    {
+        Pscp -v -pw 'pilot12' $ear $targetPath
+    }
+    else # local deploy
+    {
+        if ($v)
+        {
+            Copy-Item $ear $targetPath -Force -Verbose -ErrorAction Stop
+        }
+        else
+        {
+            Copy-Item $ear $targetPath -Force -ErrorAction Stop
+        }
+    }
+
+    return $?
+}
+
+function build-deploy([string] $server, [boolean]$doBuild, [string]$jbossTarget)
+{
+    $serverAlias = $server
+
+    if ($server -match "adapter")
+    {
+        $serverAlias = "crm-core"
+    }
+
+    $ear = "california-${server}-app-${version}-SNAPSHOT.ear"
+
+    $success = $False
+
+    Set-Location "${env:USERPROFILE}/Documents/pd/california/components/${server}" -ErrorAction Stop
+    $mvnExitValue = $True
+
+    if ($doBuild)
+    {
+        mvn -DskipTests clean install
+        $mvnExitValue = $?
+    }
+
+    $targetPath = "${jbossTarget}/server/${serverAlias}/deploy/."
+    $earfilepath = resolve-path "${server}-application/target/${ear}"
+
+    if ($mvnExitValue)
+    {
+        deploy $earfilepath $targetPath
+        $success = $?
+    }
+    else
+    {
+        "$server build failed, ear not transferred to $serverAlias"
+    }
+
+    return $success
+}
+
+$exitValue = 0
+
+foreach ($server in $servers)
+{
+    if (-not (build-deploy $server $doBuild $jbt ))
+    {
+        $exitValue = 1
+        break;
+    }
+}
+
+exit $exitValue

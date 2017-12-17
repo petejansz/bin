@@ -1,0 +1,17 @@
+var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" );
+
+function myResponseHandler( response )
+{
+    if ( response.statusCode == 200 )
+    {
+        console.log( response.body.toString() );
+        process.exit( 0 );
+    }
+    else
+    {
+        console.error( response.statusCode + ", " + response.statusMessage );
+        process.exit( 1 );
+    }
+}
+
+lib1.getAdminEnums( myResponseHandler );
