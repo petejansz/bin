@@ -1,1 +1,0 @@
-var pete = require('pete-namespace.js')
