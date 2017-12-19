@@ -239,7 +239,7 @@ function doPdCrmProcesses()
     # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/closeaccount-process"
     # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/contactverification-process"
 
-    # $componentPaths += "$caHome/components/pd-crm-processes/ca-processes/ca-contactverification-process"
+    $componentPaths += "$caHome/components/pd-crm-processes/ca-processes"
     $componentPaths += "$caHome/components/pd-crm-processes/pd-crm-processes-camel-context"
     $componentPaths += "$caHome/components/pd-crm-processes"
 

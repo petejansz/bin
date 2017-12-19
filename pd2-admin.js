@@ -10,10 +10,17 @@ var str_to_stream = require( process.env.USERPROFILE + '/AppData/Roaming/npm/nod
 var pd2admin = require( process.env.USERPROFILE + '/Documents/bin/pd2-admin-lib' )
 var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
+var description = 'pd2-admin CLI\n\n'
+description += '    close account\n'
+description += '    get enums\n'
+description += '    get playerId -u <username>\n'
+description += '    make note\n'
+description += '    search-players (city or email or firtname/lastname'
+
 program
     .version( '0.0.1' )
-    .description( 'pd2-admin CLI\n\n    close account\n\n    get enums\n\n    get playerId\n\n    make note\n\n    search-players' )
-    .usage( ' ARGS ' )
+    .description( description )
+    .usage( 'ARGS' )
     .option( '--api <close | mknote | enums | playerid | search>', 'API method' )
     .option( '--host [hostname]', 'Hostname' )
     .option( '--port [port]', 'Port number', parseInt )

@@ -56,7 +56,7 @@ var jsonBody =
 if (program.close)
 {
     jsonBody.playerId = program.playerId
-    jsonBody.reason = scriptName + ": transactionTime: " + transactionTime
+    jsonBody.reason = path.basename( __filename ) + ": transactionTime: " + transactionTime
 }
 else if (program.activate)
 {
