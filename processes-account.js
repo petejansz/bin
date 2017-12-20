@@ -3,9 +3,9 @@
   Author: Pete Jansz
 */
 
-var http = require( "http" )
+const axios = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/axios' )
 var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" )
+var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 var path = require( 'path' )
 
 program
@@ -18,92 +18,71 @@ program
     .option( '-h, --hostname <hostname>', 'Hostname' )
     .parse( process.argv )
 
-var exitValue = 0
+process.exitCode = 1
 
 if ( !program.playerId || !program.hostname )
 {
     program.help()
-    process.exit( 1 )
 }
 
-var restPath = "/california/api/v1/processes/"
+var restPath = '/california/api/v1/processes/'
 
 if ( program.activate )
 {
-    restPath += "account-activation"
+    restPath += 'account-activation'
 }
 else if ( program.close )
 {
-    restPath += "close-account"
+    restPath += 'close-account'
 }
 else
 {
-    program.help();
-    process.exit( 1 );
+    program.help()
 }
 
-var transactionTime = new Date().valueOf();
-var jsonBody =
+var transactionTime = new Date().valueOf()
+var reqData =
     {
-        "callerChannelId": lib1.caConstants.channelId,
-        "callingClientId": lib1.getFirstIPv4Address(),
-        "callerSystemId": lib1.caConstants.systemId,
-        "transactionIdBase": lib1.generateUUID(),
-        "transactionTime": transactionTime,
-        "siteID": lib1.caConstants.siteID,
+        callerChannelId: lib1.caConstants.channelId,
+        callingClientId: lib1.getFirstIPv4Address(),
+        callerSystemId: lib1.caConstants.systemId,
+        transactionIdBase: lib1.generateUUID(),
+        transactionTime: transactionTime,
+        siteID: lib1.caConstants.siteID,
     }
 
-if (program.close)
+if ( program.close )
 {
-    jsonBody.playerId = program.playerId
-    jsonBody.reason = path.basename( __filename ) + ": transactionTime: " + transactionTime
+    reqData.playerId = program.playerId
+    reqData.reason = path.basename( __filename ) + ': transactionTime: ' + transactionTime
 }
-else if (program.activate)
+else if ( program.activate )
 {
-    jsonBody.token = program.playerId
-}
-
-var options =
-{
-    "method": "POST",
-    "hostname": program.hostname,
-    "port": lib1.crmProcessesPort,
-    "path": restPath,
-    "headers": lib1.commonHeaders
+    reqData.token = program.playerId
 }
 
-options.headers['x-player-id'] = program.playerId;
-
-var req = http.request( options, function ( res )
-{
-    var chunks = [];
-
-    res.on( "data", function ( chunk )
+createAxiosInstance( program.hostname, program.playerId ).
+    post( restPath, reqData ).then( function ( response )
     {
-        chunks.push( chunk );
-    } );
-
-    res.on( "end", function ()
-    {
-        var responseBodyBuffer = Buffer.concat( chunks );
-        var responseBodyStr = responseBodyBuffer.toString();
-        var responseBodyJSON = JSON.parse( responseBodyStr );
-        var errorEncountered = responseBodyJSON.errorEncountered == true;
-        if ( errorEncountered )
+        if ( response.data.errorEncountered )
         {
-            exitValue = 1;
-            console.log( 'errorEncountered: ' + errorEncountered
-                + ", errorCode: " + responseBodyJSON.errorCode
-                + ", transactionIdBase: " + jsonBody.transactionIdBase
-            );
+            console.error( reqData.transactionIdBase )
         }
+        else
+        {
+            process.exitCode = 0
+        }
+    } )
 
-        if ( responseBodyJSON.oneTimeToken != null )
-        { console.log( responseBodyJSON.oneTimeToken ); }
+function createAxiosInstance( host, playerId )
+{
+    var headers = lib1.commonHeaders
+    headers['x-player-id'] = program.playerId
 
-        process.exit( exitValue )
-    } );
-} );
-
-req.write( JSON.stringify( jsonBody ) )
-req.end()
+    return axios.create(
+        {
+            baseURL: 'http://' + host + ':' + lib1.crmProcessesPort,
+            headers: headers,
+        }
+    )
+}
