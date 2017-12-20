@@ -40,39 +40,46 @@ else
     program.help()
 }
 
-var transactionTime = new Date().valueOf()
-var reqData =
-    {
-        callerChannelId: lib1.caConstants.channelId,
-        callingClientId: lib1.getFirstIPv4Address(),
-        callerSystemId: lib1.caConstants.systemId,
-        transactionIdBase: lib1.generateUUID(),
-        transactionTime: transactionTime,
-        siteID: lib1.caConstants.siteID,
-    }
-
-if ( program.close )
-{
-    reqData.playerId = program.playerId
-    reqData.reason = path.basename( __filename ) + ': transactionTime: ' + transactionTime
-}
-else if ( program.activate )
-{
-    reqData.token = program.playerId
-}
+var requestData = createRequest( program.close, program.playerId )
 
 createAxiosInstance( program.hostname, program.playerId ).
-    post( restPath, reqData ).then( function ( response )
+    post( restPath, requestData ).then( function ( response )
     {
         if ( response.data.errorEncountered )
         {
-            console.error( reqData.transactionIdBase )
+            console.error( requestData.transactionIdBase )
         }
         else
         {
             process.exitCode = 0
         }
     } )
+
+function createRequest( close, playerId )
+{
+    var transactionTime = new Date().valueOf()
+    var reqData =
+        {
+            callerChannelId: lib1.caConstants.channelId,
+            callingClientId: lib1.getFirstIPv4Address(),
+            callerSystemId: lib1.caConstants.systemId,
+            transactionIdBase: lib1.generateUUID(),
+            transactionTime: transactionTime,
+            siteID: lib1.caConstants.siteID,
+        }
+
+    if ( close )
+    {
+        reqData.playerId = playerId
+        reqData.reason = path.basename( __filename ) + ': transactionTime: ' + transactionTime
+    }
+    else // activate
+    {
+        reqData.token = playerId
+    }
+
+    return reqData
+}
 
 function createAxiosInstance( host, playerId )
 {
