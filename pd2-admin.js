@@ -22,9 +22,12 @@ program
     .description( description )
     .usage( 'ARGS' )
     .option( '--api <close | mknote | enums | playerid | search>', 'API method' )
-    .option( '--host [hostname]', 'Hostname' )
+    .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|localhost|pdadmin)' )
     .option( '--port [port]', 'Port number', parseInt )
-    .option( '--city [City]', 'City' )
+    .option( '--street [street]', 'Street' )
+    .option( '--city [city]', 'City' )
+    .option( '--state [state]', 'State' )
+    .option( '--zipcode [zipcode]', 'ZIP Code' )
     .option( '--email [email]', 'Email' )
     .option( '--firstname [firstname]', 'First name' )
     .option( '--lastname [lastname]', 'Last name' )
@@ -120,7 +123,13 @@ function createPdAdminSystem( program )
             auth: 'ESMS null'
         }
 
-    if ( program.host === 'cat1' )
+    if ( program.host === 'apl' )
+    {
+        pdAdminSystem.url = 'http://10.164.172.231' + adminPlayersRestPath
+        pdAdminSystem.auth = 'ESMS UIVDHLE8DKBUVNB76XJ08ZF8WWTLN2'
+        Cookie = 'JSESSIONIDSSO=XF3avEAYFy-BVY93k2Fqbr37'
+    }
+    else if ( program.host === 'cat1' )
     {
         pdAdminSystem.url = 'http://10.164.172.231' + adminPlayersRestPath
         pdAdminSystem.auth = 'ESMS 2081YK8SVV1GND4XCCKQS19P4SRZT4'
@@ -143,6 +152,11 @@ function createPdAdminSystem( program )
     if ( program.firstname ) { pdAdminSystem.qs.firstName = ( program.firstname ? program.firstname : null ) }
     if ( program.lastname ) { pdAdminSystem.qs.lastName = ( program.lastname ? program.lastname : null ) }
     if ( program.city ) { pdAdminSystem.qs.city = ( program.city ? program.city : null ) }
+    if ( program.country ) { pdAdminSystem.qs.country = ( program.country ? program.country : null ) }
+    if ( program.street ) { pdAdminSystem.qs.street = ( program.street ? program.street : null ) }
+    if ( program.state ) { pdAdminSystem.qs.state = ( program.state ? program.state : null ) }
+    if ( program.zipcode ) { pdAdminSystem.qs.zipCode = ( program.zipcode ? program.zipcode : null ) }
+    if ( program.addressType ) { pdAdminSystem.qs.addressType = ( program.addressType ? program.addressType : null ) }
 
     return pdAdminSystem
 }
