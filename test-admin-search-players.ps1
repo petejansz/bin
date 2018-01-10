@@ -2,9 +2,9 @@ $ErrorActionPreference = "stop"
 Set-StrictMode -Version Latest
 Set-PSDebug -Off #-Trace 2
 
-Set-Location C:\Users\pjansz\Documents\json\search-players
+Set-Location "$env:USERPROFILE\Documents\json\search-players"
 
-$refHost = "cat1"
+$refHost = "pdadmin"
 $city = 'l%'
 $firstName = 't%'
 $lastName = 'lastname'
@@ -12,21 +12,20 @@ $lastName = 'lastname'
 function fileAndReport($testName, $refJson, $myJSon)
 {
     $refJson | Out-File -Encoding utf8 -force 'ref-search.json'
-    $myJson |  Out-File -Encoding utf8 -force 'my-search.json'
+    $myJson  | Out-File -Encoding utf8 -force 'my-search.json'
 
-    $refCount = ($refJson | ConvertFrom-Json).Count
-    $myCount = ($myJson | ConvertFrom-Json).Count
+    $refCount = ($refJson | ConvertFrom-Json).length
+    $myCount = ($myJson   | ConvertFrom-Json).length
 
     "{0}: DevCount: {1}, MyCount: {2}" -f $testName, $refCount, $myCount
 
-    Compare-Object (Get-Content '$ref-search.json') (Get-Content 'my-search.json')
+    Compare-Object (Get-Content 'ref-search.json') (Get-Content 'my-search.json')
 }
 
 function testCity()
 {
-    $refJson = admin-search-players.js -h   $refHost -c $city | formatJson
-    $myJson = admin-search-players.js -h localhost -c $city | formatJson
-
+    $refJson = pd2-admin.js --host $refHost --api search   --city $city
+    $myJson = pd2-admin.js --host localhost --api search   --city $city
     fileAndReport 'TestCity' $refJson $myJson
 }
 
@@ -35,19 +34,19 @@ function testEmail()
     $emails = @('test60@yopmail.com', 'test%', 'zz%', '%yopmail.com' )
     foreach ($email in $emails)
     {
-        $refJson = admin-search-players.js -h   $refHost -e $email | formatJson
-        $myJson = admin-search-players.js -h localhost -e $email | formatJson
+        $refJson = pd2-admin.js --host $refHost  --api search --email $email
+        $myJson = pd2-admin.js --host  localhost --api search --email $email
         fileAndReport "TestEmail [ $email ]" $refJson $myJson
     }
 }
 
 function testName()
 {
-    $refJson = admin-search-players.js -h   $refHost -f $firstName -l $lastName | formatJson
-    $myJson = admin-search-players.js -h localhost -f $firstName -l $lastName  | formatJson
+    $refJson = pd2-admin.js --host $refHost --api search --firstname $firstName --lastname $lastName
+    $myJson = pd2-admin.js  --host localhost --api search --firstname $firstName --lastname $lastName
     fileAndReport 'TestName' $refJson $myJson
 }
 
+testName
 testCity
 testEmail
-testName

@@ -15,7 +15,7 @@ description += '    close account\n'
 description += '    get enums\n'
 description += '    get playerId -u <username>\n'
 description += '    make note\n'
-description += '    search-players (city or email or firtname/lastname'
+description += '    search-players (city/state/zipcode/email/firtname/lastname'
 
 program
     .version( '0.0.1' )
@@ -152,11 +152,9 @@ function createPdAdminSystem( program )
     if ( program.firstname ) { pdAdminSystem.qs.firstName = ( program.firstname ? program.firstname : null ) }
     if ( program.lastname ) { pdAdminSystem.qs.lastName = ( program.lastname ? program.lastname : null ) }
     if ( program.city ) { pdAdminSystem.qs.city = ( program.city ? program.city : null ) }
-    if ( program.country ) { pdAdminSystem.qs.country = ( program.country ? program.country : null ) }
     if ( program.street ) { pdAdminSystem.qs.street = ( program.street ? program.street : null ) }
     if ( program.state ) { pdAdminSystem.qs.state = ( program.state ? program.state : null ) }
     if ( program.zipcode ) { pdAdminSystem.qs.zipCode = ( program.zipcode ? program.zipcode : null ) }
-    if ( program.addressType ) { pdAdminSystem.qs.addressType = ( program.addressType ? program.addressType : null ) }
 
     return pdAdminSystem
 }
