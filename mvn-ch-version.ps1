@@ -57,32 +57,32 @@ function get-ver-artifactId ($pomFile)
 
 if ($newversion)
 {
-    # $mvnArgs = "versions:set -DnewVersion={0}" -f $newversion
-    # mvn $mvnArgs
-    $pomFiles = ls pom.xml -r -path .
+    $mvnArgs = "-DnewVersion={0}" -f $newversion
+    mvn versions:set $mvnArgs
+    # $pomFiles = ls pom.xml -r -path .
 
-    $regex = "^[0-9]{1,2}`.[0-9]{1,2}`.[0-9]{1,2}`.[0-9]{1,2}`."
+    # $regex = "^[0-9]{1,2}`.[0-9]{1,2}`.[0-9]{1,2}`.[0-9]{1,2}`."
 
-    foreach ($file in $pomFiles)
-    {
-        $xmlDoc = ([xml](Get-Content $file.fullname))
+    # foreach ($file in $pomFiles)
+    # {
+    #     $xmlDoc = ([xml](Get-Content $file.fullname))
 
-        try
-        {
-            if ($xmlDoc.project.version -match $regex)
-            {
-                "PARENT: {0} {1} {2}" -f $xmlDoc.project.version, $xmlDoc.project.artifactId, $file.FullName
-            }
-        }
-        catch {}
-        try
-        {
+    #     try
+    #     {
+    #         if ($xmlDoc.project.version -match $regex)
+    #         {
+    #             "PARENT: {0} {1} {2}" -f $xmlDoc.project.version, $xmlDoc.project.artifactId, $file.FullName
+    #         }
+    #     }
+    #     catch {}
+    #     try
+    #     {
 
-            if ($xmlDoc.project.parent.version -match $regex)
-            {
-                "{0} {1} {2}" -f $xmlDoc.project.parent.version, $xmlDoc.project.parent.artifactId, $file.FullName
-            }
-        }
-        catch {}
-    }
+    #         if ($xmlDoc.project.parent.version -match $regex)
+    #         {
+    #             "{0} {1} {2}" -f $xmlDoc.project.parent.version, $xmlDoc.project.parent.artifactId, $file.FullName
+    #         }
+    #     }
+    #     catch {}
+    # }
 }
