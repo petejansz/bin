@@ -9,23 +9,35 @@ program
     .version( '0.0.1' )
     .description( 'NodeJS CLI to players/self get attributes' )
     .usage( '-f file' )
-    .option( '-f, --file <file>', 'filename' )
+    .option( '-f, --file [file]', 'filename' )
     .parse( process.argv )
 
 process.exitCode = 1
 
-if ( !program.file )
+var objStr = null
+
+if ( program.file )
+{
+    objStr = fs.readFileSync( path.resolve( program.file ) ).toString()
+}
+else
+{
+    var stdinBuffer = fs.readFileSync( 0 ) // STDIN_FILENO = 0
+    objStr = stdinBuffer.toString().trim()
+}
+
+if ( !objStr )
 {
     program.help()
 }
 
-var objStr = fs.readFileSync( path.resolve( program.file ) ).toString()
 var obj = JSON.parse( objStr )
 
 for ( i = 0; i < obj.value.length; i++ )
 {
     var item = obj.value[i]
-    if ( item.id.match( /jack|winning/ig ) && item.channels.EMAIL.enabled )
+    // if ( item.id.match( /HostEvent/ig ) )//&& item.channels.EMAIL.enabled )
+    if ( item.channels.EMAIL.enabled )
     {
         var o2 = {}
         o2.name = item.id

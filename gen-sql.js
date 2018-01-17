@@ -1,7 +1,6 @@
 // Pete Jansz
 // Generate SQL update script file for
 
-const DESCRIPTION = 'CASA-11033: KBOX Ticket 108593 - Write Script for 2nd Chance Player accounts to un-verify (out of state addresses)'
 var fs = require( 'fs' )
 var util = require( 'util' )
 var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
@@ -11,11 +10,12 @@ var path = require( 'path' )
 
 program
     .version( '0.0.1' )
-    .description( "Generate SQL update script file\n" + DESCRIPTION )
+    .description( 'Generate SQL script' )
     .usage( ' ARGS' )
     .option( '--csvfile <csvfile>', 'CSV file of player IDs' )
     .option( '--sqlt <sqlt>', 'SQL template file' )
     .option( '--pid', 'Print playerIDs' )
+    // .option( '--of [outputfile]', 'Write SQL to output file' )
     .parse( process.argv )
 
 process.exitCode = 1
@@ -35,34 +35,36 @@ for ( var i = 0; i < records.length; i++ )
 {
     var record = records[i]
     var playerID = record.playerID
-    if (program.pid)
+
+    if ( program.pid )
     {
-        console.log(playerID)
+        console.log( playerID )
     }
 
     playerIdList.push( playerID )
 }
 
-if (program.pid)
+if ( program.pid )
 {
     process.exitCode = 0
     process.exit()
 }
 
-generateSql( playerIdList, sqlt.statements )
+generateSql( playerIdList, sqlt, sqlt.statements )
 process.exitCode = 0
 ///////////////////////////////////////////////////////////////////////////////
 
-function generateSql( playerIdList, statments )
+function generateSql( playerIdList, sqlt, statments )
 {
     console.log( util.format( "-- Generated: %s", new Date() ) )
-    console.log( "-- " + DESCRIPTION + "\n" )
+    console.log( "-- " + sqlt.description + "\n" )
 
     var sqlStatementTemplate = statments.join( "\n\n" )
 
     for ( i = 0; i < playerIdList.length; i++ )
     {
         var playerId = playerIdList[i].trim()
+
         if ( isNaN( playerId ) )
         {
             continue
