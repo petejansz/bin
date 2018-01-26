@@ -15,7 +15,7 @@ program
     .option( '--csvfile <csvfile>', 'CSV file of player IDs' )
     .option( '--sqlt <sqlt>', 'SQL template file' )
     .option( '--pid', 'Print playerIDs' )
-    // .option( '--of [outputfile]', 'Write SQL to output file' )
+    .option( '--of [outputfile]', 'Write SQL to output file' )
     .parse( process.argv )
 
 process.exitCode = 1
@@ -34,7 +34,7 @@ var playerIdList = []
 for ( var i = 0; i < records.length; i++ )
 {
     var record = records[i]
-    var playerID = record.playerID
+    var playerID = record.PlayerID
 
     if ( program.pid )
     {

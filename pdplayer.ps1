@@ -11,6 +11,7 @@ param
     [string]$newpwd,
     [string]$logintoken,
     [string]$lock,
+    [switch]$mobile,
     [string]$unlock,
     [string]$USERNAME,
     [string]$password = "RegTest6100",
@@ -66,6 +67,7 @@ function showHelp()
 
     Write-Host "  -logintoken <username>"
     Write-Host "  -lock <reason>                        -username <username>"
+    Write-Host "  -mobile"
     Write-Host "  -password <password default=RegTest6100>"
     Write-Host "  -port <int default=80>"
     Write-Host "  -reg    <csv-file>                    -username <username> [-show and exit]"
@@ -93,7 +95,7 @@ try
             $players = import-csv $csvfile
             $player = $players | Where-Object {$_.PlayerEmail -eq $username}
             $player.PlayerId = $devxToken
-            $result = activate $hostname $port $player $devxToken
+            $result = activate $hostname $port $player $devxToken $mobile
             $players | export-csv $csvfile -notype -force
         }
         catch
@@ -107,101 +109,102 @@ try
         $bodyTemplate = '{"oldPassword" : "oldPassword_VALUE", "newPassword" : "newPassword_VALUE"}'
         $body = $bodyTemplate -replace 'oldPassword_VALUE', $oldPassword
         $body = $body -replace 'newPassword_VALUE', $newpwd
-
-        $token = login $hostname $port $username $oldPassword
-        execRestChangePassword $hostname $port $token $body | Out-Null
+        $password = $oldPassword
+        $token = login $hostname $port $username $password $mobile
+        execRestChangePassword $hostname $port $token $body $mobile | Out-Null
     }
     elseif ($close)
     {
         $playerId = $close
         if (-not($username)) {showHelp}
-        $token = login $hostname $port $username $password
-        execCaAdminRestCloseAccount "pdadmin" 8280 $token $playerId $reason
+        $token = login $hostname $port $username $password $mobile
+        if (-not($reason)) {$reason = $scriptName + " REASON"}
+        execCaAdminRestCloseAccount "pdadmin" 8280 $token $playerId $reason $mobile
     }
     elseif ($lock)
     {
         if (-not($username)) {showHelp}
-        $token = login $hostname $port $username $password
-        execRestLockService $hostname $port $token $true $lock
+        $token = login $hostname $port $username $password $mobile
+        execRestLockService $hostname $port $token $true $lock $mobile
     }
     elseif ($logintoken)
     {
         if (-not($logintoken)) {showHelp}
         $username = $logintoken
-        login $hostname $port $username $password
+        login $hostname $port $username $password $mobile
     }
     elseif ($unlock)
     {
         if (-not($username)) {showHelp}
-        $token = login $hostname $port $username $password
-        execRestLockService $hostname $port $token $false $unlock
+        $token = login $hostname $port $username $password $mobile
+        execRestLockService $hostname $port $token $false $unlock $mobile
     }
     elseif ($emailavailable)
     {
         if (-not($emailavailable)) {showHelp}
         $username = $emailavailable
-        isEmailnameAvailable $hostname $port $username
+        isEmailnameAvailable $hostname $port $username $mobile
     }
     elseif ($getattributes)
     {
-        $token = login $hostname $port $username $password
-        execRestGetAttributes $hostname $port $token
+        $token = login $hostname $port $username $password $mobile
+        execRestGetAttributes $hostname $port $token $mobile
     }
     elseif ($getcommprefs)
     {
-        $token = login $hostname $port $username $password
-        execRestGetComPrefs $hostname $port $token
+        $token = login $hostname $port $username $password $mobile
+        execRestGetComPrefs $hostname $port $token $mobile
     }
     elseif ($updatecommprefs)
     {
         $jsonBody = Get-Content $updatecommprefs
-        $token = login $hostname $port $username $password
-        execRestUpdateComPrefs $hostname $port $token $jsonBody
+        $token = login $hostname $port $username $password $mobile
+        execRestUpdateComPrefs $hostname $port $token $jsonBody $mobile
     }
     elseif ($getnotificationsprefs)
     {
-        $token = login $hostname $port $username $password
+        $token = login $hostname $port $username $password $mobile
         execRestGetNotificationsPrefs $hostname $port $token
     }
     elseif ($updatenotificationsprefs)
     {
         $jsonBody = Get-Content $updatenotificationsprefs
-        $token = login $hostname $port $username $password
-        execRestUpdateNotificationsPrefs $hostname $port $token $jsonBody
+        $token = login $hostname $port $username $password $mobile
+        execRestUpdateNotificationsPrefs $hostname $port $token $jsonBody $mobile
     }
     elseif ($getpersonalinfo)
     {
-        $token = login $hostname $port $username $password
-        execRestGetPersonalInfo $hostname $port $token
+        $token = login $hostname $port $username $password $mobile
+        execRestGetPersonalInfo $hostname $port $token $mobile
     }
     elseif ($updatepersonalinfo)
     {
         $jsonBody = Get-Content $updatepersonalinfo
-        $token = login $hostname $port $username $password
-        execRestUpdatePersonalInfo $hostname $port $token $jsonBody
+        $token = login $hostname $port $username $password $mobile
+        execRestUpdatePersonalInfo $hostname $port $token $jsonBody $mobile
     }
     elseif ($getprofile)
     {
-        $token = login $hostname $port $username $password
-        execRestGetProfile $hostname $port $token
+        $token = login $hostname $port $username $password $mobile
+        execRestGetProfile $hostname $port $token $mobile
     }
     elseif ($updateprofile)
     {
         $jsonBody = Get-Content $updateprofile
-        $token = login $hostname $port $username $password
-        execRestUpdateProfile $hostname $port $token $jsonBody
+        $token = login $hostname $port $username $password $mobile
+        execRestUpdateProfile $hostname $port $token $jsonBody $mobile
     }
     elseif ($update)
     {
         $csvfile = $update
         $player = import-csv $update | Where-Object {$_.PlayerEmail -eq $username}
 
-        $result = update $hostname $port $player $password
+        $result = update $hostname $port $player $password $mobile
         Write-Host "Updated: $username : $result"
     }
     elseif ($reg)
     {
-        $available = isEmailnameAvailable $hostname $port $username
+        $available = isEmailnameAvailable $hostname $port $username $mobile
         Write-Host ("Emailname '${username}' available: ${available}")
 
         if ($available -or $show)
@@ -219,7 +222,7 @@ try
                 $json
                 exit
             }
-            $response = execRestRegisterUser $hostname $port $json
+            $response = execRestRegisterUser $hostname $port $json $mobile
             $xToken = [string]$response.Headers.'X-Token'
             Write-Host "xToken: $xToken"
             $xToken = $xToken.Trim()

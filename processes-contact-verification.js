@@ -12,7 +12,7 @@ var scriptName = path.basename( __filename );
 program
     .version( '0.0.1' )
     .description( 'CLI to pd-crm-processess contact-verification REST methods' )
-    .usage( scriptName + ' [option] <args>' )
+    .usage( '[option] <args>' )
     .option( '-i, --playerId [playerId]', 'PlayerId' )
     .option( '-o, --oldpassword [oldpassword]', 'Old password' )
     .option( '-n, --newpassword [newpassword]', 'New password' )
