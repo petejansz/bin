@@ -4,24 +4,43 @@
 
 var Pd2Admin = ( function ()
 {
-    // Return a promise
-    var getPlayerId = function ( username, host, port )
+    // Return a promise of personal-info or profile
+    // f: "pers | pro"
+    var getPersProf = function ( playerId, f, host, port )
     {
         var util = require( 'util' )
         var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request-promise' )
         var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
+        var fname = f.match( "^pers" ) ? 'personal-info' : 'profile'
         const restPath = '/california-admin-rest/api/v1/admin/players'
-        const url = util.format( '%s://%s:%s%s', 'http', host, ( port ? port : lib1.adminPort ), restPath )
+        const url = util.format( '%s://%s:%s%s/%s/%s', 'http', host, ( port ? port : lib1.adminPort ), restPath, playerId, fname )
         var options =
             {
                 url: url,
-                qs: { email: encodeURI( username ) },
                 headers: lib1.adminHeaders,
                 json: true
             }
 
         return request( options )
     },
+
+        // Return a promise
+        getPlayerId = function ( username, host, port )
+        {
+            var util = require( 'util' )
+            var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request-promise' )
+            var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
+            const restPath = '/california-admin-rest/api/v1/admin/players'
+            const url = util.format( '%s://%s:%s%s', 'http', host, ( port ? port : lib1.adminPort ), restPath )
+            var options =
+                {
+                    url: url,
+                    qs: { email: encodeURI( username ) },
+                    headers: lib1.adminHeaders,
+                    json: true
+                }
+            return request( options )
+        },
 
         getAdminEnums = function ( responseHandler )
         {
@@ -156,6 +175,7 @@ var Pd2Admin = ( function ()
         createNote: createNote,
         getPlayerId: getPlayerId,
         getAdminEnums: getAdminEnums,
+        getPersProf: getPersProf,
         searchForPlayers: searchForPlayers
     }
 } )()

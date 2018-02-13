@@ -11,17 +11,19 @@ var pd2admin = require( process.env.USERPROFILE + '/Documents/bin/pd2-admin-lib'
 var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
 var description = 'pd2-admin CLI\n\n'
-description += '    close account\n'
+description += '    close account --playerid <playerId>\n'
 description += '    get enums\n'
 description += '    get playerId -u <username>\n'
 description += '    make note\n'
+description += '    personal-info -u <username>\n'
+description += '    profile -u <username>\n'
 description += '    search-players (city/state/zipcode/email/firtname/lastname'
 
 program
     .version( '0.0.1' )
     .description( description )
     .usage( 'ARGS' )
-    .option( '--api <close | mknote | enums | playerid | search>', 'API method' )
+    .option( '--api <close | mknote | enums | playerid | pers | prof | search>', 'API method' )
     .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|localhost|pdadmin)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
@@ -49,12 +51,23 @@ async function main()
     {
         pd2admin.getAdminEnums( adminEnumsResponseHandler )
     }
-    else if ( program.api === 'playerid' && program.username && program.host )
+    else if ( program.api === 'playerid' && program.username && program.host.match( /^cat1$|^cat2$|^localhost$|^pdadmin$/i ) )
     {
         const promisedGetPlayerId = util.promisify( pd2admin.getPlayerId )
         var response = await pd2admin.getPlayerId( program.username, program.host, program.port )
         if ( response && response[0] && response[0].playerId )
             streamIt( response[0].playerId );
+    }
+    else if ( program.api.match( /^pers|^pro/i ) && program.username && program.host.match( /^cat1$|^cat2$|^localhost$|^pdadmin$/i ) )
+    {
+        const promisedGetPlayerId = util.promisify( pd2admin.getPlayerId )
+        var response = await pd2admin.getPlayerId( program.username, program.host, program.port )
+        if ( response && response[0] && response[0].playerId )
+        {
+            var playerId = response[0].playerId
+            var response = await pd2admin.getPersProf( playerId, program.api, program.host, program.port )
+            streamIt( JSON.stringify( response ) )
+        }
     }
     else if ( program.api === 'search' && program.host.match( /^cat1$|^cat2$|^localhost$|^pdadmin$/i ) )
     {
