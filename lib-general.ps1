@@ -18,6 +18,34 @@ $FirstnameRegEx = "^[A-Za-z\\xE1\\xE9\\xED\\xF3\\xFA\\xC1\\xC9\\xCD\\xD3\\xDA\\x
 $LastnameRegEx = "^[A-Za-z\\xE1\\xE9\\xED\\xF3\\xFA\\xC1\\xC9\\xCD\\xD3\\xDA\\xF1\\xD1\\xDC\\xFC ,.'-]{1,30}$"
 #$LastnameRegEx = $FirstnameRegEx
 
+function hex2Dec( $hexValue )
+{
+    [int]$decValue = 0
+
+    if ($hexValue -match "^0x.*")
+    {
+        $decValue = [int] $hexValue
+    }
+    else
+    {
+        $decValue = [int] ("0x" + $hexValue)
+    }
+
+    return $decValue
+}
+
+function hex2dec2 ($hexValue )
+{
+    return [Convert]::ToInt64( $hexValue, 16 )
+}
+
+function convert2hex ( $numValue  )
+{
+    [int]$hex = ('0x' + $numValue)
+    return $hex.ToString("X2")
+}
+
+
 function validatePhonenumber( [string] $s )
 {
     if (-not($s -match "^\d{10}$"))
