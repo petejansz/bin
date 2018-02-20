@@ -234,19 +234,25 @@ function doCrmCore()
 function doPdCrmProcesses()
 {
     # Member of pd-crm-processes/deploy/california-pd-crm-processes-app-2.0.15.0-SNAPSHOT.ear
-    $componentPaths = @("$pd2Home/components/pd-crm-processes/processes-commons")
-    $componentPaths += "$pd2Home/components/pd-crm-processes/processor-core"
+    # $componentPaths = @("$pd2Home/components/pd-crm-processes/processes-commons")
+    # $componentPaths += "$pd2Home/components/pd-crm-processes/processor-core"
     # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/closeaccount-process"
     # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/contactverification-process"
 
-    $componentPaths += "$caHome/components/pd-crm-processes/ca-processes"
-    $componentPaths += "$caHome/components/pd-crm-processes/pd-crm-processes-camel-context"
-    $componentPaths += "$caHome/components/pd-crm-processes"
+    # $componentPaths += "$caHome/components/pd-crm-processes/ca-processes"
+    # $componentPaths += "$caHome/components/pd-crm-processes/pd-crm-processes-camel-context"
+    # $componentPaths += "$caHome/components/pd-crm-processes"
+    $componentPaths += "$caHome/components/batch"
 
     build $componentPaths
-    $targetDir = "$caHome/components/pd-crm-processes/pd-crm-processes-application/target"
-    deployArtifact $targetDir "california-pd-crm-processes-app-${caVersion}.ear" "pd-crm-processes"
-    $artifact = "{0}/{1}" -f $targetDir, "california-pd-crm-processes-app-${caVersion}.ear"
+    # $targetDir = "$caHome/components/pd-crm-processes/pd-crm-processes-application/target"
+    # deployArtifact $targetDir "california-pd-crm-processes-app-${caVersion}.ear" "pd-crm-processes"
+    # $artifact = "{0}/{1}" -f $targetDir, "california-pd-crm-processes-app-${caVersion}.ear"
+    # pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy"
+
+    $targetDir = "$caHome/components/batch/batch-admin-application/target"
+    deployArtifact $targetDir "california-batch-admin-application.ear" "pd-crm-processes"
+    $artifact = "{0}/{1}" -f $targetDir, "california-batch-admin-application.ear"
     pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy"
 }
 

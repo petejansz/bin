@@ -1,12 +1,12 @@
 // First NodeJS database (DB2) query tool.
 // Pete Jansz, Oct 2017
 
-var fs = require( 'fs' );
-var util = require( 'util' );
-var ibmdb = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/ibm_db' );
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' );
-var path = require( 'path' );
-var scriptName = path.basename( __filename );
+var fs = require( 'fs' )
+var util = require( 'util' )
+var ibmdb = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/ibm_db' )
+var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
+var path = require( 'path' )
+var scriptName = path.basename( __filename )
 
 program
     .version( '0.0.1' )
@@ -19,35 +19,37 @@ program
     .option( '-p, --port [port]', 'DB2 port number (default=55000)', parseInt )
     .option( '-u, --username [username]', 'DB2 username' )
     .option( '-P, --password [password]', 'Password' )
-    .parse( process.argv );
+    .parse( process.argv )
 
-var exitValue = 0;
+var exitValue = 0
 
 if ( !program.sqlfile && !program.sqlstmt )
 {
-    program.help();
-    process.exit( 1 );
+    program.help()
+    process.exit( 1 )
 }
 
 // Default connection values:
-var dbname = "GMS4";
-var hostname = '156.24.32.127';
-var uid = 'b2cinst1';
-var pwd = 'b2cinst1';
-var port = 55000;
+var dbname = "GMS4"
+var hostname = '156.24.32.127'
+var uid = 'b2cinst1'
+var pwd = 'b2cinst1'
+var port = 55000
 
-if ( program.hostname ) { hostname = program.hostname; }
-if ( program.port ) { port = program.port; }
-if ( program.dbname ) { dbname = program.dbname; }
-if ( program.username ) { uid = program.username; }
-if ( program.password ) { pwd = program.password; }
+if ( program.hostname ) { hostname = program.hostname }
+if ( program.port ) { port = program.port }
+if ( program.dbname ) { dbname = program.dbname }
+if ( program.username ) { uid = program.username }
+if ( program.password ) { pwd = program.password }
 
-var dsn = util.format( "DRIVER={DB2};DATABASE=%s;HOSTNAME=%s;UID=%s;PWD=%s;PORT=%s;PROTOCOL=TCPIP", dbname, hostname, uid, pwd, port );
+var dsn = util.format(
+    "DRIVER={DB2};DATABASE=%s;HOSTNAME=%s;UID=%s;PWD=%s;PORT=%s;PROTOCOL=TCPIP",
+    dbname, hostname, uid, pwd, port )
 
-var startTime = new Date();
-console.error( util.format( "Connecting to: %s://%s:%s", hostname, dbname, port ) );
+var startTime = new Date()
+console.error( util.format( "Connecting to: %s://%s:%s", hostname, dbname, port ) )
 
-var sqlStatement = null;
+var sqlStatement = null
 
 if ( program.sqlstmt )
 {
