@@ -1,6 +1,7 @@
 param
 (
-    [switch]$mobile
+    [string]$exfile,
+    [string]$sqlfile
 )
 
 . lib-general.ps1
