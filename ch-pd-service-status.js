@@ -135,7 +135,7 @@ function convertCsvRecordToPlayer( csvRecord )
     var player =
         {
             contractIdentity: csvRecord.CONTRACT_IDENTITY.trim(),
-            contractId: csvRecord.CONTRACT_ID.trim(),
+            contractId: parseInt( csvRecord.CONTRACT_ID.trim() ),
             emailVerified: parseInt( csvRecord.EMAIL_VERIFIED.trim() ),
             portalService: 0,
             secondChanceService: 0,
