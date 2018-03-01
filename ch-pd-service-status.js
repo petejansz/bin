@@ -135,10 +135,13 @@ function convertCsvRecordToPlayer( csvRecord )
     var player =
         {
             contractIdentity: csvRecord.CONTRACT_IDENTITY.trim(),
+            contractLastUpdated: csvRecord.C_LAST_UPDATED.trim(),
             contractId: parseInt( csvRecord.CONTRACT_ID.trim() ),
             emailVerified: parseInt( csvRecord.EMAIL_VERIFIED.trim() ),
+            customerContactsLastUpdated: csvRecord.CC_LAST_UPDATED.trim(),
             portalService: 0,
             secondChanceService: 0,
+            customerServiceLastUpdated: csvRecord.CS_LAST_UPDATED.trim()
         }
 
     if ( csvRecord.SERVICE_STATUS_IDS.includes( ',' ) )
@@ -176,6 +179,9 @@ function generateSql( players, sqlt, statements )
             var sqlCode = sqlStatementTemplate
             sqlCode = sqlCode.replace( /contractIdentity/g, player.contractIdentity )
             sqlCode = sqlCode.replace( /contractId/g, player.contractId )
+            sqlCode = sqlCode.replace( /contractLastUpdated/g, player.contractLastUpdated)
+            sqlCode = sqlCode.replace( /customerContactsLastUpdated/g, player.customerContactsLastUpdated )
+            sqlCode = sqlCode.replace( /customerServiceLastUpdated/g, player.customerServiceLastUpdated )
 
             if ( program.of )
             {
