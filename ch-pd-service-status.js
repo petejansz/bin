@@ -120,10 +120,14 @@ function convertPlayerToFormattedString( player )
     if ( player2.secondChanceService == SUSPEND ) { player2.secondChanceService = 'SUSPEND' }
     if ( player2.secondChanceService == PREACTIVE ) { player2.secondChanceService = 'PREACTIVE' }
 
+    if ( player2.newState == ACTIVE ) { player2.newState = 'ACTIVE' }
+    if ( player2.newState == SUSPEND ) { player2.newState = 'SUSPEND' }
+    if ( player2.newState == PREACTIVE ) { player2.newState = 'PREACTIVE' }
+
     var outputStr =
-        player2.contractIdentity.padStart( 17 )
-        + player2.contractId.padStart( 12 )
-        + player2.emailVerified.padStart( 22 )
+        player2.contractIdentity.toString().padStart( 17 )
+        + player2.contractId.toString().padStart( 12 )
+        + player2.emailVerified.toString().padStart( 22 )
         + player2.portalService.toString().padStart( 22 )
         + player2.secondChanceService.toString().padStart( 10 )
         + player2.newState.toString().padStart( 11 )
