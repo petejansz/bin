@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node",
+            "request": "launch",
+            "name": "pd2-admin",
+            "program": "${workspaceFolder}/pd2-admin.js",
+            "args": [
+                "--api", "pers", "--host", "dev", " --playerid", "1000006077"
+            ]
+        },
+        {
             "type": "PowerShell",
             "request": "launch",
             "name": "PowerShell Launch Current File w/Args Prompt",
@@ -17,9 +26,10 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/test-player-notifprefs.js",
-            "args": [ "-f", "C:/Users/pjansz/Documents/json/notif-prefs/zzzagob.json"
+            "name": "Launch NodeJS Program",
+            "program": "${workspaceFolder}/ch-pd-service-status.js",
+            "args": [ "--csvfile", "C:/Users/pjansz/Documents/pd/sql/casa-11034/dev/result.csv",
+                "--sqlt", "C:/Users/pjansz/Documents/pd/sql/casa-11034/update-to-suspended.sql.js"
 
             ]
         }

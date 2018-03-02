@@ -22,7 +22,7 @@ program
 
 process.exitCode = 1
 
-if ( !program.playerId || !program.hostname ||!program.method)
+if ( !program.playerId || !program.hostname || !program.method )
 {
     program.help()
 }
@@ -51,21 +51,21 @@ if ( program.jsonfile )
     method = 'PUT'
 }
 
-url = "http://10.164.172.231/california-admin-rest/api/v1/admin/players/" + program.playerId + adminRestInterface
-auth = 'ESMS 2081YK8SVV1GND4XCCKQS19P4SRZT4'
+url = "http://" + program.hostname + ":8280/california-admin-rest/api/v1/admin/players/" + program.playerId + adminRestInterface
+auth = "ESMS 6JCYV4DO0H7O7BA3OSPAHU0OND4PN0"
 
 var options =
-{
-    method: 'GET',
-    url: url,
-    headers:
     {
-        'cache-control': 'no-cache',
-        referer:  lib1.getFirstIPv4Address(),
-        dnt: '1',
-        Authorization: auth,
+        method: 'GET',
+        url: url,
+        headers:
+            {
+                'cache-control': 'no-cache',
+                referer: lib1.getFirstIPv4Address(),
+                dnt: '1',
+                Authorization: auth,
+            }
     }
-}
 
 request( options, function ( error, response, body )
 {
@@ -75,5 +75,5 @@ request( options, function ( error, response, body )
     }
 
     console.log( body )
-    process.exitCode = 1
+    process.exitCode = 0
 } )

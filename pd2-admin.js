@@ -24,7 +24,7 @@ program
     .version( '0.0.1' )
     .description( description )
     .usage( 'ARGS' )
-    .option( '--api <close | mknote | enums | playerid | pers | prof | search>', 'API method' )
+    .option( '--api <close | mknote | enums | playerid | per | prof | search>', 'API method' )
     .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
@@ -61,7 +61,7 @@ async function main()
     {
         pd2admin.getPlayerId( pdAdminSystem, program.username, playerIdResponseHandler )
     }
-    else if ( program.api.match( /^pers|^pro/i ) && program.playerid && supportedHosts() )
+    else if ( program.api.match( /^per|^pro/i ) && program.playerid && supportedHosts() )
     {
         pd2admin.getPersProf( pdAdminSystem, program.playerid, program.api, commonResponseHandler )
     }

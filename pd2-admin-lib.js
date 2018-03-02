@@ -4,13 +4,13 @@
 
 var Pd2Admin = ( function ()
 {
-    // f: "pers | pro"
+    // f: "per | pro"
     var getPersProf = function ( pdAdminSystem, playerId, f, responseHandler )
     {
         var util = require( 'util' )
         var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request' )
         var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
-        var fun = f === 'pers' ? 'personal-info' : 'profile'
+        var fun = f.match( /^per/i ) ? 'personal-info' : 'profile'
         var options =
             {
                 method: 'GET',
