@@ -4,24 +4,25 @@
 
 var Pd2Admin = ( function ()
 {
-    // Return a promise of personal-info or profile
     // f: "pers | pro"
-    var getPersProf = function ( playerId, f, host, port )
+    var getPersProf = function ( pdAdminSystem, playerId, f, responseHandler )
     {
         var util = require( 'util' )
-        var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request-promise' )
+        var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request' )
         var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
-        var fname = f.match( "^pers" ) ? 'personal-info' : 'profile'
-        const restPath = '/california-admin-rest/api/v1/admin/players'
-        const url = util.format( '%s://%s:%s%s/%s/%s', 'http', host, ( port ? port : lib1.adminPort ), restPath, playerId, fname )
+        var fun = f === 'pers' ? 'personal-info' : 'profile'
         var options =
             {
-                url: url,
-                headers: lib1.adminHeaders,
-                json: true
+                method: 'GET',
+                url: pdAdminSystem.url + util.format('/%s/%s', playerId, fun ),
+                headers: lib1.adminHeaders
             }
 
-        return request( options )
+        options.headers.authorization = pdAdminSystem.auth,
+        options.headers.referer = lib1.getFirstIPv4Address()
+        options.headers.dnt = '1'
+
+        request( options, responseHandler )
     },
 
         getPlayerId = function ( pdAdminSystem, username, responseHandler )

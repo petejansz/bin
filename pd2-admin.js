@@ -7,6 +7,7 @@ var path = require( 'path' )
 var util = require( 'util' )
 var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
 var str_to_stream = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/string-to-stream' )
+//var stream_to_str = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/stream-to-string' )
 var pd2admin = require( process.env.USERPROFILE + '/Documents/bin/pd2-admin-lib' )
 var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
@@ -15,8 +16,8 @@ description += '    close account --playerid <playerId>\n'
 description += '    get enums\n'
 description += '    get playerId -u <username>\n'
 description += '    make note\n'
-description += '    personal-info -u <username>\n'
-description += '    profile -u <username>\n'
+description += '    personal-info --playerid <playerId>\n'
+description += '    profile --playerid <playerId>\n'
 description += '    search-players (city/state/zipcode/email/firtname/lastname'
 
 program
@@ -60,16 +61,9 @@ async function main()
     {
         pd2admin.getPlayerId( pdAdminSystem, program.username, playerIdResponseHandler )
     }
-    else if ( program.api.match( /^pers|^pro/i ) && program.username && supportedHosts() )
+    else if ( program.api.match( /^pers|^pro/i ) && program.playerid && supportedHosts() )
     {
-        const promisedGetPlayerId = util.promisify( pd2admin.getPlayerId )
-        var response = await pd2admin.getPlayerId( program.username, program.host, program.port )
-        if ( response && response[0] && response[0].playerId )
-        {
-            var playerId = response[0].playerId
-            var response = await pd2admin.getPersProf( playerId, program.api, program.host, program.port )
-            streamIt( JSON.stringify( response ) )
-        }
+        pd2admin.getPersProf( pdAdminSystem, program.playerid, program.api, commonResponseHandler )
     }
     else if ( program.api === 'search' && supportedHosts() )
     {
