@@ -24,63 +24,43 @@ var Pd2Admin = ( function ()
         return request( options )
     },
 
-        // Return a promise
-        getPlayerId = function ( username, host, port )
+        getPlayerId = function ( pdAdminSystem, username, responseHandler )
         {
-            var util = require( 'util' )
-            var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request-promise' )
-            var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
-            const restPath = '/california-admin-rest/api/v1/admin/players'
-            const url = util.format( '%s://%s:%s%s', 'http', host, ( port ? port : lib1.adminPort ), restPath )
-            var options =
-                {
-                    url: url,
-                    qs: { email: encodeURI( username ) },
-                    headers: lib1.adminHeaders,
-                    json: true
-                }
-            return request( options )
-        },
-
-        getAdminEnums = function ( responseHandler )
-        {
-            var http = require( 'http' )
+            var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request' )
             var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
             var options =
                 {
                     method: 'GET',
-                    hostname: lib1.caConstants.CAT1_ADMIN_PORTAL_HOST,
-                    path: '/california-admin-rest/api/v1/admin/enums',
+                    url: pdAdminSystem.url,
+                    qs: { email: encodeURI( username ) },
                     headers: lib1.adminHeaders
-                };
+                }
 
-            options.headers.authorization = 'ESMS 6JCYV4DO0H7O7BA3OSPAHU0OND4PN0'
+            options.headers.authorization = pdAdminSystem.auth,
+            options.headers.referer = lib1.getFirstIPv4Address()
+            options.headers.dnt = '1'
 
-            var req = http.request( options, function ( res )
-            {
-                var chunks = []
+            request( options, responseHandler )
+        },
 
-                res.on( 'data', function ( chunk )
+        getAdminEnums = function ( pdAdminSystem, responseHandler )
+        {
+            var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request' )
+            var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
+
+            var options =
                 {
-                    chunks.push( chunk )
-                } )
+                    method: 'GET',
+                    url: pdAdminSystem.url.toString().replace( 'players', 'enums' ),
+                    headers: lib1.adminHeaders
+                }
 
-                res.on( 'end', function ()
-                {
-                    var body = Buffer.concat( chunks )
-                    var responseObj =
-                        {
-                            headers: this.headers,
-                            statusCode: this.statusCode,
-                            statusMessage: this.statusMessage,
-                            body: body
-                        }
-                    responseHandler( responseObj )
-                } )
-            } )
+            options.headers.authorization = pdAdminSystem.auth,
+            options.headers.referer = lib1.getFirstIPv4Address()
+            options.headers.dnt = '1'
 
-            req.end()
+            request( options, responseHandler )
         },
 
         // Return a promise when responseHandler null

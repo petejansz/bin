@@ -24,7 +24,7 @@ program
     .description( description )
     .usage( 'ARGS' )
     .option( '--api <close | mknote | enums | playerid | pers | prof | search>', 'API method' )
-    .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|localhost|pdadmin)' )
+    .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
     .option( '--city [city]', 'City' )
@@ -39,26 +39,28 @@ program
 
 process.exitCode = 1
 
+if ( !program.api && !program.host )
+{
+    program.help()
+}
+
 async function main()
 {
     var pdAdminSystem = createPdAdminSystem( program )
 
     if ( program.api == 'close' )
     {
-        pd2admin.closeAccount( pdAdminSystem, program.playerid, closeAccountResponseHandler )
+        pd2admin.closeAccount( pdAdminSystem, program.playerid, commonResponseHandler )
     }
     else if ( program.api === 'enums' )
     {
-        pd2admin.getAdminEnums( adminEnumsResponseHandler )
+        pd2admin.getAdminEnums( pdAdminSystem, commonResponseHandler )
     }
-    else if ( program.api === 'playerid' && program.username && program.host.match( /^cat1$|^cat2$|^localhost$|^pdadmin$/i ) )
+    else if ( program.api === 'playerid' && program.username && supportedHosts() )
     {
-        const promisedGetPlayerId = util.promisify( pd2admin.getPlayerId )
-        var response = await pd2admin.getPlayerId( program.username, program.host, program.port )
-        if ( response && response[0] && response[0].playerId )
-            streamIt( response[0].playerId );
+        pd2admin.getPlayerId( pdAdminSystem, program.username, playerIdResponseHandler )
     }
-    else if ( program.api.match( /^pers|^pro/i ) && program.username && program.host.match( /^cat1$|^cat2$|^localhost$|^pdadmin$/i ) )
+    else if ( program.api.match( /^pers|^pro/i ) && program.username && supportedHosts() )
     {
         const promisedGetPlayerId = util.promisify( pd2admin.getPlayerId )
         var response = await pd2admin.getPlayerId( program.username, program.host, program.port )
@@ -69,23 +71,24 @@ async function main()
             streamIt( JSON.stringify( response ) )
         }
     }
-    else if ( program.api === 'search' && program.host.match( /^cat1$|^cat2$|^localhost$|^pdadmin$/i ) )
+    else if ( program.api === 'search' && supportedHosts() )
     {
         const promisedSearchForPlayers = util.promisify( pd2admin.searchForPlayers )
         var response = await promisedSearchForPlayers( pdAdminSystem )
         streamIt( response.body )
     }
-    else if ( program.api === 'mknote' && program.playerid && program.host.match( /^cat1$|^cat2$|^localhost$|^pdadmin$/i ) )
+    else if ( program.api === 'mknote' && program.playerid && supportedHosts() )
     {
-        pd2admin.createNote( pdAdminSystem, program.playerid, noteResponseHandler )
-    }
-    else if ( !program.api )
-    {
-        program.help()
+        pd2admin.createNote( pdAdminSystem, program.playerid, commonResponseHandler )
     }
 }
 
 main()
+
+function supportedHosts()
+{
+    return program.host.match( /^cat1$|^cat2$|^localhost$|^dev$/i )
+}
 
 function streamIt( o )
 {
@@ -93,7 +96,17 @@ function streamIt( o )
     process.exitCode = 0
 }
 
-function closeAccountResponseHandler( error, response, body )
+function playerIdResponseHandler( error, response, body )
+{
+    if ( error )
+    {
+        throw new Error( error )
+    }
+
+    streamIt( JSON.parse(body)[0].playerId )
+}
+
+function commonResponseHandler( error, response, body )
 {
     if ( error )
     {
@@ -101,29 +114,6 @@ function closeAccountResponseHandler( error, response, body )
     }
 
     streamIt( body )
-}
-
-function noteResponseHandler( error, response, body )
-{
-    if ( error )
-    {
-        throw new Error( error )
-    }
-
-    streamIt( body )
-}
-
-function adminEnumsResponseHandler( response )
-{
-    if ( response.statusCode == 200 )
-    {
-        var enumStr = response.body.toString()
-        streamIt( enumStr )
-    }
-    else
-    {
-        console.error( response.statusCode + ", " + response.statusMessage )
-    }
 }
 
 function createPdAdminSystem( program )
@@ -145,7 +135,7 @@ function createPdAdminSystem( program )
     else if ( program.host === 'cat1' )
     {
         pdAdminSystem.url = 'http://10.164.172.231' + adminPlayersRestPath
-        pdAdminSystem.auth = 'ESMS 2081YK8SVV1GND4XCCKQS19P4SRZT4'
+        pdAdminSystem.auth = 'ESMS HJYYAQQQ9XDZ7IKXT69ED4HB3CICV3'
     }
     else if ( program.host === 'cat2' )
     {
@@ -156,7 +146,7 @@ function createPdAdminSystem( program )
     {
         pdAdminSystem.url = 'http://localhost:8380' + adminPlayersRestPath
     }
-    else if ( program.host === 'pdadmin' )
+    else if ( program.host === 'dev' )
     {
         pdAdminSystem.url = 'http://pdadmin:8280' + adminPlayersRestPath
     }
