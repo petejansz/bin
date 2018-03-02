@@ -18,7 +18,8 @@ description += '    get playerId -u <username>\n'
 description += '    make note\n'
 description += '    personal-info --playerid <playerId>\n'
 description += '    profile --playerid <playerId>\n'
-description += '    search-players (city/state/zipcode/email/firtname/lastname'
+description += '    search-players (city/state/zipcode/email/firtname/lastname\n'
+description += '\n  NOTE: cat2 requires rengw tunnel to pd2 host'
 
 program
     .version( '0.0.1' )
@@ -133,8 +134,8 @@ function createPdAdminSystem( program )
     }
     else if ( program.host === 'cat2' )
     {
-        pdAdminSystem.url = 'https://10.164.172.245' + adminPlayersRestPath
-        pdAdminSystem.auth = 'ESMS GRROWP4M5D6NH5IMHX1YBHNIJJEVQ8'
+        pdAdminSystem.url = 'http://rengw2:8280' + adminPlayersRestPath
+        pdAdminSystem.auth = 'ESMS MK0ASV2SFSR3JUZPQXCHHO30WAALA4'
     }
     else if ( program.host === 'localhost' )
     {
