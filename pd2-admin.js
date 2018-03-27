@@ -26,7 +26,7 @@ program
     .description( description )
     .usage( 'ARGS' )
     .option( '--api <close | mknote | enums | playerid | per | prof | search>', 'API method' )
-    .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost)' )
+    .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
     .option( '--city [city]', 'City' )
@@ -82,7 +82,7 @@ main()
 
 function supportedHosts()
 {
-    return program.host.match( /^cat1$|^cat2$|^localhost$|^dev$/i )
+    return program.host.match( /^apl$|^prod$|^cat1$|^cat2$|^localhost$|^dev$/i )
 }
 
 function streamIt( o )
@@ -127,15 +127,21 @@ function createPdAdminSystem( program )
         pdAdminSystem.auth = 'ESMS UIVDHLE8DKBUVNB76XJ08ZF8WWTLN2'
         Cookie = 'JSESSIONIDSSO=XF3avEAYFy-BVY93k2Fqbr37'
     }
+    else if ( program.host === 'prod' )
+    {
+        pdAdminSystem.url = 'https://172.25.54.46' + adminPlayersRestPath
+        pdAdminSystem.auth = 'ESMS MQ5TN3R9H2TVN643RRD507Z3FR9YJ2'
+    }
     else if ( program.host === 'cat1' )
     {
         pdAdminSystem.url = 'http://10.164.172.231' + adminPlayersRestPath
-        pdAdminSystem.auth = 'ESMS HJYYAQQQ9XDZ7IKXT69ED4HB3CICV3'
+        pdAdminSystem.auth = 'ESMS ' + process.env.CA_CAT1_PDADMIN_TOKEN
     }
     else if ( program.host === 'cat2' )
     {
-        pdAdminSystem.url = 'http://rengw2:8280' + adminPlayersRestPath
-        pdAdminSystem.auth = 'ESMS MK0ASV2SFSR3JUZPQXCHHO30WAALA4'
+        // pdAdminSystem.url = 'http://rengw2:8280' + adminPlayersRestPath
+        pdAdminSystem.url = 'http://10.164.172.245' + adminPlayersRestPath
+        pdAdminSystem.auth = 'ESMS ' + process.env.CA_CAT2_PDADMIN_TOKEN
     }
     else if ( program.host === 'localhost' )
     {
