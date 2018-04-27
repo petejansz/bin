@@ -18,6 +18,10 @@ $FirstnameRegEx = "^[A-Za-z\\xE1\\xE9\\xED\\xF3\\xFA\\xC1\\xC9\\xCD\\xD3\\xDA\\x
 $LastnameRegEx = "^[A-Za-z\\xE1\\xE9\\xED\\xF3\\xFA\\xC1\\xC9\\xCD\\xD3\\xDA\\xF1\\xD1\\xDC\\xFC ,.'-]{1,30}$"
 #$LastnameRegEx = $FirstnameRegEx
 
+function get-ipv4InetAddress()
+{
+    return (Test-Connection -ComputerName $env:computername -count 1).IPV4Address.ipaddressTOstring
+}
 function hex2Dec( $hexValue )
 {
     [int]$decValue = 0

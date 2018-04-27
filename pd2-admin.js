@@ -25,7 +25,7 @@ program
     .version( '0.0.1' )
     .description( description )
     .usage( 'ARGS' )
-    .option( '--api <close | mknote | enums | playerid | per | prof | search>', 'API method' )
+    .option( '--api <close | mknote | enums | playerid | per | pro | search>', 'API method' )
     .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )

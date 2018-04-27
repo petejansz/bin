@@ -31,8 +31,8 @@ function createHeader( [boolean]$mobile )
             'x-channel-id'   = $channel         ; `
             'x-site-id'      = $SiteId               ; `
             'x-client-id'    = $clientId           ; `
-            'user-agent'     = $env:USERNAME       ; `
-
+            'user-agent'     = (get-ipv4InetAddress)       ; `
+            'X-DEVICE-UUID'  = (get-ipv4InetAddress)   ; `
     }
 
     return $header
@@ -50,7 +50,7 @@ function createAuthHeader( [string]$oauthToken, [boolean]$mobile ) # @map
             'x-channel-id'   = $channel               ; `
             'x-site-id'      = $SiteId                  ; `
             'user-agent'     = $env:USERNAME            ; `
-
+            'X-DEVICE-UUID'  = (get-ipv4InetAddress)   ; `
     }
 
     return $authHeader

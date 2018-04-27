@@ -26,8 +26,9 @@ $ScriptName = $MyInvocation.MyCommand.Name
 
 function showHelp()
 {
-    Write-Output "USAGE: $ScriptName [option] -con <connection> -sqlfile <filename> -exportFile <filename>"
+    Write-Output "USAGE: $ScriptName [option] -con <connection> -sqlfile <filename>"
     Write-Output "  option"
+    Write-Output "      -exportFile <filename>"
     exit 1
 }
 
