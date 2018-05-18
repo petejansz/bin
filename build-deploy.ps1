@@ -254,10 +254,10 @@ function doPdCrmProcesses()
     pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy"
 
     # Batch california-batch-admin-application.ear
-    # $targetDir = "$caHome/components/batch/batch-admin-application/target"
-    # deployArtifact $targetDir "california-batch-admin-application.ear" "pd-crm-processes"
-    # $artifact = "{0}/{1}" -f $targetDir, "california-batch-admin-application.ear"
-    # pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy"
+    $targetDir = "$caHome/components/batch/batch-admin-application/target"
+    deployArtifact $targetDir "california-batch-admin-application.ear" "pd-crm-processes"
+    $artifact = "{0}/{1}" -f $targetDir, "california-batch-admin-application.ear"
+    pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy"
 }
 
 Write-Output "CA Version: ${caVersion}"
