@@ -84,6 +84,11 @@ if (-not($hostname)) {showHelp}
 $response = $null
 try
 {
+    if ($hostname -match "mobile")
+    {
+        $mobile = $true
+    }
+
     if ($act)
     {
         if (-not($csvfile)) {showHelp}

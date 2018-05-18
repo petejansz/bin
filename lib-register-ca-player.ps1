@@ -25,14 +25,15 @@ function createHeader( [boolean]$mobile )
     }
 
     $header = @{                                `
-            'Content-Type'   = 'application/json' ; `
-            'cache-control'  = 'no-cache'        ; `
-            'x-ex-system-id' = $SystemId        ; `
-            'x-channel-id'   = $channel         ; `
+            'Content-Type'   = 'application/json'    ; `
+            'cache-control'  = 'no-cache'            ; `
+            'x-ex-system-id' = $SystemId             ; `
+            'x-channel-id'   = $channel              ; `
             'x-site-id'      = $SiteId               ; `
-            'x-client-id'    = $clientId           ; `
-            'user-agent'     = (get-ipv4InetAddress)       ; `
-            'X-DEVICE-UUID'  = (get-ipv4InetAddress)   ; `
+            'x-client-id'    = $clientId             ; `
+            'X-CLIENTIP'     = (get-ipv4InetAddress)    ; `
+            'X-ESA-API-KEY'  = "AGpTKF0ze+6H6x3NTqjbVrMfcvt3MoZ7"   ; `
+            'X-DEVICE-UUID'  = ('UUID-' + (get-ipv4InetAddress) ); `
     }
 
     return $header
@@ -43,14 +44,15 @@ function createAuthHeader( [string]$oauthToken, [boolean]$mobile ) # @map
     if ($mobile) {$channel = $MOBILE_CHANNEL_ID}
 
     $authHeader = @{                                   `
-            'Content-Type'   = 'application/json'        ; `
+            'Content-Type'   = 'application/json'       ; `
             'authorization'  = ("OAuth " + $oauthToken) ; `
             'cache-control'  = 'no-cache'               ; `
-            'x-ex-system-id' = $SystemId               ; `
-            'x-channel-id'   = $channel               ; `
+            'x-ex-system-id' = $SystemId                ; `
+            'x-channel-id'   = $channel                 ; `
             'x-site-id'      = $SiteId                  ; `
-            'user-agent'     = $env:USERNAME            ; `
-            'X-DEVICE-UUID'  = (get-ipv4InetAddress)   ; `
+            'X-CLIENTIP'     = (get-ipv4InetAddress)    ; `
+            'X-ESA-API-KEY'  = "di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b"   ; `
+            'X-DEVICE-UUID'  = ('UUID-' + (get-ipv4InetAddress));`
     }
 
     return $authHeader
@@ -204,7 +206,18 @@ function execOAuthTokens ( [string]$hostname, [int]$port, [string]$authCode, [bo
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/oauth/self/tokens"
     $resp = Invoke-WebRequest -uri $uri -Method POST -Body $body -Headers $header
-    $token = ($resp.content | ConvertFrom-Json).token[1]
+    $mobileToken = ($resp.content | ConvertFrom-Json).token[0]
+    $pwsToken = ($resp.content | ConvertFrom-Json).token[1]
+
+    if ($mobile)
+    {
+        $token = $mobileToken
+    }
+    else
+    {
+        $token = $pwsToken
+    }
+
     return $token
 }
 
