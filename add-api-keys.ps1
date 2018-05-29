@@ -8,6 +8,7 @@ param
     [string]    $configfile,
     [string]    $keyFile,
     [switch]    $stdout,
+    [switch]    $envConfigKeys,
     [switch]    $update,
     [switch]    $help,
     [switch]    $h
@@ -29,6 +30,7 @@ function showHelp()
 {
     Write-Output "USAGE: $ScriptName [option] -configfile <xml configfile> -keyfile <text file>"
     Write-Output "  [option]"
+    Write-Output "      -envConfigKeys  Write env-config/*-mobile.xml <api-key to stdout"
     Write-Output "      -stdout     # Write XML to stdout"
     Write-Output "      -update     # Uptdate (overwrite) configfile"
     exit 1
@@ -51,37 +53,61 @@ if ( -not($configfile) -or -not ($keyfile ) )
     showHelp
 }
 
+function createEnvConfigKey ($key)
+{
+    "<api-key key=`"{0}`" />" -f $key
+}
+
 $configfile = Resolve-Path $configfile
 $keyFile = Resolve-Path $keyFile
 
-[xml] $xml = (Get-Content $configfile)
+$configContents = Get-Content $configfile
+$xml = New-Object -TypeName XML
+$xml.Load($configfile)
 $keys = Get-Content $keyFile
 $count = 0
+$doUpdate = $false
 # $xml.config.applications.mobile.apikeys.apikey[0].key
 # $xml.config.applications.mobile.apikeys.apikey[0].signaturekey
 
 foreach ($newApiKeyValue in $keys)
 {
     $count++
-    $apikeyElem = $xml.CreateElement("apikey")
-    $keyElem = $xml.CreateElement("key")
-    $keyElem.set_InnerText((keyInnerText $count)) | Out-Null
-    $signaturekey = $xml.CreateElement("signaturekey")
-    $signaturekey.set_InnerText($newApiKeyValue) | Out-Null
-    $apikeyElem.AppendChild($keyElem) | Out-Null
-    $apikeyElem.AppendChild($signaturekey) | Out-Null
-    $xml.config.applications.mobile.apikeys.AppendChild($apikeyElem) | Out-Null
+
+    if ($envConfigKeys)
+    {
+        createEnvConfigKey $newApiKeyValue
+    }
+
+    $expression = "//signaturekey[.=`'{0}`']" -f $newApiKeyValue
+    $keyExists = $configContents | Select-String -Quiet -Pattern $newApiKeyValue
+
+    if ( -not ($keyExists ) )
+    {
+        $doUpdate = $True
+        $apikeyElem = $xml.CreateElement("apikey")
+        $keyElem = $xml.CreateElement("key")
+        $keyElem.set_InnerText((keyInnerText $count)) | Out-Null
+        $signaturekey = $xml.CreateElement("signaturekey")
+        $signaturekey.set_InnerText($newApiKeyValue) | Out-Null
+        $apikeyElem.AppendChild($keyElem) | Out-Null
+        $apikeyElem.AppendChild($signaturekey) | Out-Null
+        $xml.config.applications.mobile.apikeys.AppendChild($apikeyElem) | Out-Null
+    }
 }
 
+$encoding = New-Object System.Text.UTF8Encoding($true)
 $tempFile = New-TemporaryFile
-$xml.Save($tempFile)
+$strWriter = New-Object System.IO.StreamWriter($tempFile, $false, $encoding)
+$xml.Save($strWriter)
+$strWriter.Close()
 
 if ($stdout)
 {
     Get-Content $tempFile
 }
 
-if ($update)
+if ($doUpdate -and $update)
 {
     Move-Item -force $tempFile $configfile
 }
