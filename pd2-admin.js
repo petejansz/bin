@@ -130,7 +130,9 @@ function createPdAdminSystem( program )
     else if ( program.host === 'prod' )
     {
         pdAdminSystem.url = 'https://172.25.54.46' + adminPlayersRestPath
-        pdAdminSystem.auth = 'ESMS MQ5TN3R9H2TVN643RRD507Z3FR9YJ2'
+        pdAdminSystem.auth = 'ESMS ' + process.env.CA_PROD_PDADMIN_TOKEN
+        pdAdminSystem.Cookie = 'JSESSIONIDSSO=aLTCk9WR7OWfhEDuJ3NDMFVy'
+        pdAdminSystem.rejectUnauthorized = false
     }
     else if ( program.host === 'cat1' )
     {
