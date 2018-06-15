@@ -12,11 +12,11 @@ var Pd2Admin = ( function ()
         var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
         var fun = f.match( /^per/i ) ? 'personal-info' : 'profile'
         var options =
-            {
-                method: 'GET',
-                url: pdAdminSystem.url + util.format('/%s/%s', playerId, fun ),
-                headers: lib1.adminHeaders
-            }
+        {
+            method: 'GET',
+            url: pdAdminSystem.url + util.format( '/%s/%s', playerId, fun ),
+            headers: lib1.adminHeaders
+        }
 
         options.headers.authorization = pdAdminSystem.auth,
         options.headers.referer = lib1.getFirstIPv4Address()
@@ -31,15 +31,15 @@ var Pd2Admin = ( function ()
             var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
             var options =
-                {
-                    method: 'GET',
-                    url: pdAdminSystem.url,
-                    qs: { email: encodeURI( username ) },
-                    headers: lib1.adminHeaders
-                }
+            {
+                method: 'GET',
+                url: pdAdminSystem.url,
+                qs: { email: encodeURI( username ) },
+                headers: lib1.adminHeaders
+            }
 
             options.headers.authorization = pdAdminSystem.auth,
-            options.headers.referer = lib1.getFirstIPv4Address()
+                options.headers.referer = lib1.getFirstIPv4Address()
             options.headers.dnt = '1'
 
             request( options, responseHandler )
@@ -51,14 +51,14 @@ var Pd2Admin = ( function ()
             var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
             var options =
-                {
-                    method: 'GET',
-                    url: pdAdminSystem.url.toString().replace( 'players', 'enums' ),
-                    headers: lib1.adminHeaders
-                }
+            {
+                method: 'GET',
+                url: pdAdminSystem.url.toString().replace( 'players', 'enums' ),
+                headers: lib1.adminHeaders
+            }
 
             options.headers.authorization = pdAdminSystem.auth,
-            options.headers.referer = lib1.getFirstIPv4Address()
+                options.headers.referer = lib1.getFirstIPv4Address()
             options.headers.dnt = '1'
 
             request( options, responseHandler )
@@ -71,19 +71,19 @@ var Pd2Admin = ( function ()
             var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
             var options =
+            {
+                method: 'GET',
+                rejectUnauthorized: false,
+                url: pdAdminSystem.url,
+                qs: pdAdminSystem.qs,
+                headers:
                 {
-                    method: 'GET',
-                    rejectUnauthorized: false,
-                    url: pdAdminSystem.url,
-                    qs: pdAdminSystem.qs,
-                    headers:
-                        {
-                            'cache-control': 'no-cache',
-                            referer: lib1.getFirstIPv4Address(),
-                            dnt: '1',
-                            Authorization: pdAdminSystem.auth,
-                        }
+                    'cache-control': 'no-cache',
+                    referer: lib1.getFirstIPv4Address(),
+                    dnt: '1',
+                    Authorization: pdAdminSystem.auth,
                 }
+            }
 
             if ( responseHandler )
             {
@@ -101,26 +101,26 @@ var Pd2Admin = ( function ()
             var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
             var options =
+            {
+                method: 'POST',
+                rejectUnauthorized: false,
+                url: pdAdminSystem.url + '/' + playerId + '/note',
+                headers:
                 {
-                    method: 'POST',
-                    rejectUnauthorized: false,
-                    url: pdAdminSystem.url + '/' + playerId + '/note',
-                    headers:
-                        {
-                            'cache-control': 'no-cache',
-                            referer: lib1.getFirstIPv4Address(),
-                            dnt: '1',
-                            Authorization: pdAdminSystem.auth,
-                        },
-                    body:
-                        {
-                            displayAlert: false,
-                            note: 'Make a note.',
-                            user: 'administrator',
-                            creationDate: new Date().getTime()
-                        },
-                    json: true
-                }
+                    'cache-control': 'no-cache',
+                    referer: lib1.getFirstIPv4Address(),
+                    dnt: '1',
+                    Authorization: pdAdminSystem.auth,
+                },
+                body:
+                {
+                    displayAlert: false,
+                    note: 'Make a note.',
+                    user: 'administrator',
+                    creationDate: new Date().getTime()
+                },
+                json: true
+            }
 
             request( options, responseHandler )
         },
@@ -130,26 +130,80 @@ var Pd2Admin = ( function ()
             var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request' )
             var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
             var options =
+            {
+                method: 'PUT',
+                rejectUnauthorized: false,
+                url: pdAdminSystem.url + '/' + playerId + '/closeaccount',
+                headers:
                 {
-                    method: 'PUT',
-                    rejectUnauthorized: false,
-                    url: pdAdminSystem.url + '/' + playerId + '/closeaccount',
-                    headers:
-                        {
-                            'cache-control': 'no-cache',
-                            referer: lib1.getFirstIPv4Address(),
-                            dnt: '1',
-                            Authorization: pdAdminSystem.auth,
-                        },
-                    body:
-                        {
-                            contractId: playerId, reason: 'Admin, close this account!'
-                        },
-                    json: true
-                }
+                    'cache-control': 'no-cache',
+                    referer: lib1.getFirstIPv4Address(),
+                    dnt: '1',
+                    Authorization: pdAdminSystem.auth,
+                },
+                body:
+                {
+                    contractId: playerId, reason: 'Admin, close this account!'
+                },
+                json: true
+            }
 
             request( options, responseHandler )
         }
+
+    // Get both Player Portal, SecondChance services states or set both to ACTIVATED or SUSPENDED state.
+    services = function ( pdAdminSystem, services, responseHandler )
+    {
+        var request = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/request' )
+        var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
+        var options = {}
+
+        if ( services.serviceIds )
+        {
+            options =
+            {
+                method: 'PUT',
+                rejectUnauthorized: false,
+                url: pdAdminSystem.url + '/' + services.playerId + '/services/' + services.activate,
+                useQuerystring : true,
+                qs:
+                {
+                    serviceId: services.serviceIds
+                },
+                headers:
+                {
+                    'cache-control': 'no-cache',
+                    referer: lib1.getFirstIPv4Address(),
+                    dnt: '1',
+                    Authorization: pdAdminSystem.auth,
+                },
+                body:
+                {
+                    reason: services.activate ? 'Activate account services.' : 'Suspend account services.'
+                },
+                json: true
+            }
+        }
+        else
+        {
+            options =
+            {
+                method: 'GET',
+                rejectUnauthorized: false,
+                url: pdAdminSystem.url + '/' + services.playerId + '/services',
+                headers:
+                {
+                    'cache-control': 'no-cache',
+                    referer: lib1.getFirstIPv4Address(),
+                    dnt: '1',
+                    Authorization: pdAdminSystem.auth,
+                },
+                json: true
+            }
+        }
+
+        request( options, responseHandler )
+    }
 
     return {
         closeAccount: closeAccount,
@@ -157,7 +211,8 @@ var Pd2Admin = ( function ()
         getPlayerId: getPlayerId,
         getAdminEnums: getAdminEnums,
         getPersProf: getPersProf,
-        searchForPlayers: searchForPlayers
+        searchForPlayers: searchForPlayers,
+        services: services
     }
 } )()
 

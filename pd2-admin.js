@@ -11,7 +11,7 @@ var str_to_stream = require( process.env.USERPROFILE + '/AppData/Roaming/npm/nod
 var pd2admin = require( process.env.USERPROFILE + '/Documents/bin/pd2-admin-lib' )
 var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
 
-var description = 'pd2-admin CLI\n\n'
+var description = 'pd2-admin CLI api syntax\n\n'
 description += '    close account --playerid <playerId>\n'
 description += '    get enums\n'
 description += '    get playerId -u <username>\n'
@@ -19,13 +19,14 @@ description += '    make note\n'
 description += '    personal-info --playerid <playerId>\n'
 description += '    profile --playerid <playerId>\n'
 description += '    search-players (city/state/zipcode/email/firtname/lastname\n'
+description += '    services --playerid <playerId> [ --serviceid number,number [--activate (default=suspend)] ]\n'
 description += '\n  NOTE: cat2 requires rengw tunnel to pd2 host'
 
 program
     .version( '0.0.1' )
     .description( description )
     .usage( 'ARGS' )
-    .option( '--api <close | mknote | enums | playerid | per | pro | search>', 'API method' )
+    .option( '--api < close | enums | mknote | playerid | per | pro | search | services >', 'API method' )
     .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
@@ -36,12 +37,14 @@ program
     .option( '--firstname [firstname]', 'First name' )
     .option( '--lastname [lastname]', 'Last name' )
     .option( '--playerid [playerid]', 'PlayerId', parseInt )
+    .option( '--serviceids <number,number>', 'CSV service ids', commanderCsvList )
+    .option( '--activate', 'Activate' )
     .option( '-u, --username [username]', 'Username' )
     .parse( process.argv )
 
 process.exitCode = 1
 
-if ( !program.api && !program.host )
+if ( !program.api || !supportedHosts() )
 {
     program.help()
 }
@@ -58,31 +61,47 @@ async function main()
     {
         pd2admin.getAdminEnums( pdAdminSystem, commonResponseHandler )
     }
-    else if ( program.api === 'playerid' && program.username && supportedHosts() )
+    else if ( program.api === 'playerid' && program.username )
     {
         pd2admin.getPlayerId( pdAdminSystem, program.username, playerIdResponseHandler )
     }
-    else if ( program.api.match( /^per|^pro/i ) && program.playerid && supportedHosts() )
+    else if ( program.api.match( /^per|^pro/i ) && program.playerid )
     {
         pd2admin.getPersProf( pdAdminSystem, program.playerid, program.api, commonResponseHandler )
     }
-    else if ( program.api === 'search' && supportedHosts() )
+    else if ( program.api === 'mknote' && program.playerid )
+    {
+        pd2admin.createNote( pdAdminSystem, program.playerid, commonResponseHandler )
+    }
+    else if ( program.api === 'search' )
     {
         const promisedSearchForPlayers = util.promisify( pd2admin.searchForPlayers )
         var response = await promisedSearchForPlayers( pdAdminSystem )
         streamIt( response.body )
     }
-    else if ( program.api === 'mknote' && program.playerid && supportedHosts() )
+    else if ( program.api === 'services' && program.playerid )
     {
-        pd2admin.createNote( pdAdminSystem, program.playerid, commonResponseHandler )
+        var services =
+        {
+            playerId: program.playerid,
+            activate: program.activate ? 'activate' : 'suspend',
+            serviceIds: ( program.serviceids && program.serviceids.length === 2 ) ? program.serviceids : null
+        }
+
+        pd2admin.services( pdAdminSystem, services, servicesResponseHandler )
     }
 }
 
 main()
 
+function commanderCsvList( val )
+{
+    return val.split( ',' )
+}
+
 function supportedHosts()
 {
-    return program.host.match( /^apl$|^prod$|^cat1$|^cat2$|^localhost$|^dev$/i )
+    return program.host && program.host.match( /^apl$|^prod$|^cat1$|^cat2$|^localhost$|^dev$/i )
 }
 
 function streamIt( o )
@@ -98,7 +117,20 @@ function playerIdResponseHandler( error, response, body )
         throw new Error( error )
     }
 
-    streamIt( JSON.parse(body)[0].playerId )
+    streamIt( JSON.parse( body )[0].playerId )
+}
+
+function servicesResponseHandler( error, response, body )
+{
+    if ( error )
+    {
+        throw new Error( error )
+    }
+
+    if ( body.services )
+    {
+        console.log( body.services )
+    }
 }
 
 function commonResponseHandler( error, response, body )
@@ -115,11 +147,11 @@ function createPdAdminSystem( program )
 {
     var adminPlayersRestPath = '/california-admin-rest/api/v1/admin/players'
     var pdAdminSystem =
-        {
-            url: null,
-            qs: {},
-            auth: 'ESMS null'
-        }
+    {
+        url: null,
+        qs: {},
+        auth: 'ESMS null'
+    }
 
     if ( program.host === 'apl' )
     {
@@ -147,7 +179,7 @@ function createPdAdminSystem( program )
     }
     else if ( program.host === 'localhost' )
     {
-        pdAdminSystem.url = 'http://localhost:8380' + adminPlayersRestPath
+        pdAdminSystem.url = 'http://localhost:' + ( program.port ? program.port : 8380 ) + adminPlayersRestPath
     }
     else if ( program.host === 'dev' )
     {
