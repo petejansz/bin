@@ -127,9 +127,9 @@ function servicesResponseHandler( error, response, body )
         throw new Error( error )
     }
 
-    if ( body.services )
+    if ( body )//.services )
     {
-        console.log( body.services )
+        console.log( body )//.services )
     }
 }
 

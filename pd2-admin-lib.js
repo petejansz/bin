@@ -179,7 +179,14 @@ var Pd2Admin = ( function ()
                 },
                 body:
                 {
-                    reason: services.activate ? 'Activate account services.' : 'Suspend account services.'
+                    '@class': 'ServiceDTO',
+                    reason: services.activate ? 'Activate account services.' : 'Suspend account services.',
+                    creationDate: null,
+                    lastModificationDate: null,
+                    serviceId: services.serviceIds[0],
+                    status: 3,
+                    serviceType: 1,
+                    serviceGroupType: 500,
                 },
                 json: true
             }
