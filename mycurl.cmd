@@ -1,0 +1,1 @@
+"%USERPROFILE%\apps\curl-7.54.0-win64-mingw\bin\curl.exe" -X PUT https://player.calottery.com/api/v2/players/forgotten-password -H "cache-control: no-cache" -H "content-type: application/json" -H "x-channel-id: 2" -H "x-ex-system-id: 8" -H "x-site-id: 35" --data-raw { "emailAddress" : "test50@yopmail.com" }

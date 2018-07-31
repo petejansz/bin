@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config>
+  <!-- comma-separated list of FTL files that can be eliminated prior to running fmpp ant task -->
+  <ftlExcludes>
+  </ftlExcludes>
+  <nodes>
+    <noserver>
+      <mobile>
+        <virtualhost>noserver</virtualhost>
+      </mobile>
+    </noserver>
+  </nodes>
+  <applications>
+    <mobile>
+      <virtualhost>TBD</virtualhost>
+      <!-- note: CA uses signatureKey as the api key in sec gateway config
+            current it doesnt require request signature
+             -->
+      <apikeys>
+        <apikey>
+          <key>Andoird or iOS App 7/26 2</key>
+          <signaturekey>di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Andoird or iOS App 7/26 3</key>
+          <signaturekey>AGpTKF0ze+6H6x3NTqjbVrMfcvt3MoZ7</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Andoird or iOS App 7/26 5</key>
+          <signaturekey>HgvqeRLoMXV3PQVnVs7CRsZN6TAxj3g9</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 1</key>
+          <signaturekey>HQPDbvYtB2QkCcLFTzRV2F7NrSd6Tpix7</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 2</key>
+          <signaturekey>YbYiULomtgC58MTR4hUIMUUSwspIDMWFu</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 3</key>
+          <signaturekey>odyP1aubMtKFisHdrvLxh7w3ghbJOSVR3</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 4</key>
+          <signaturekey>iSGITfyTBdcvhd9c5QgetmV0auj4wvEkk</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 5</key>
+          <signaturekey>TaGHSmRNKlBcIfLlyoijO8lNuLtTng4tg</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 6</key>
+          <signaturekey>5HfWslzfpqE1Hnrve94Rvr9V7b8qkJ8yQ</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 7</key>
+          <signaturekey>FFHy4qj9a3FYR1UToqqnfTyUHwpOsgukk</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 8</key>
+          <signaturekey>D7JVvsDCsRLMhjlxDzN07fsocBmuVYvBA</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 9</key>
+          <signaturekey>jYs18CehobpoR7D3n4Om2UAY1VqnAoRCE</signaturekey>
+        </apikey>
+        <apikey>
+          <key>Android or iOS App 2018-05-29 10</key>
+          <signaturekey>g9Dd0zdwyAhQOfd8zMM6YcntxQ2s69kkh</signaturekey>
+        </apikey>
+      </apikeys>
+    </mobile>
+    <esa>
+      <logging>
+        <requestBody>true</requestBody>
+        <requestHeaders>true</requestHeaders>
+        <responseBody>true</responseBody>
+        <responseHeaders>true</responseHeaders>
+      </logging>
+    </esa>
+  </applications>
+  <!-- JBoss specific settings -->
+  <jboss>
+    <home>C:/java/deploy/gga/jboss-eap-5.1.2</home>
+    <containerName>sec-gateway</containerName>
+    <referenceContainerName>standard_jbossws_patched</referenceContainerName>
+    <user>ricie</user>
+    <group>ricie</group>
+    <logDir>/var/log/gtech/sec-gateway</logDir>
+    <!-- log level used from some packages, check in jboss-log4j.xml.ftl files in containers which packages use this property-->
+    <logLevel>DEBUG</logLevel>
+    <javaOpts>-Xms512m -Xmx512m -XX:MaxPermSize=256m -Dorg.jboss.resolver.warning=true -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000 -Dsun.lang.ClassLoader.allowArraySyntax=true -Djboss.service.binding.set=ports-02</javaOpts>
+    <debug>
+      <enabled>true</enabled>
+      <port>8787</port>
+    </debug>
+    <wsDump>false</wsDump>
+    <bufferedLog>false</bufferedLog>
+    <deleteOldLogs>false</deleteOldLogs>
+  </jboss>
+  <oauth>
+    <url>http://156.24.66.159</url>
+    <port>8480</port>
+    <context>oauth-auth-server</context>
+    <clientId>OAuth</clientId>
+    <username>sys</username>
+    <password>password_123</password>
+    <siteId>35</siteId>
+  </oauth>
+  <secondchance>
+    <url>http://10.253.162.12</url>
+    <port>80</port>
+    <context>api</context>
+  </secondchance>
+  <esa>
+    <url>
+    </url>
+    <port>
+    </port>
+  </esa>
+  <crmConnector>
+    <jndi>jnp://localhost:1300</jndi>
+  </crmConnector>
+  <!-- Tivoli connector wrapper configuration -->
+  <tvc>
+    <location>
+      <host>156.24.35.33</host>
+      <port>162</port>
+    </location>
+    <community>GTECH Community</community>
+    <siteId>35</siteId>
+    <productName>GGA-CA</productName>
+    <rateLimitedDelay>1000</rateLimitedDelay>
+  </tvc>
+</config>
