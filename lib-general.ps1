@@ -22,6 +22,7 @@ function get-ipv4InetAddress()
 {
     return (Test-Connection -ComputerName $env:computername -count 1).IPV4Address.ipaddressTOstring
 }
+
 function hex2Dec( $hexValue )
 {
     [int]$decValue = 0
@@ -43,12 +44,37 @@ function hex2dec2 ($hexValue )
     return [Convert]::ToInt64( $hexValue, 16 )
 }
 
-function convert2hex ( $numValue  )
+function convertToBase ( [int]$numValue, [int]$base )
 {
-    [int]$hex = ('0x' + $numValue)
-    return $hex.ToString("X2")
+    return [Convert]::ToString($numValue, $base)
 }
 
+function convert2hex ( $numValue )
+{
+    return convertToBase $numValue 16
+}
+
+function strToHex( [string]$str )
+{
+    return $str.ToCharArray() | ForEach-Object {$hex = convert2Hex ([int][char]$_); $hex.ToUpper() }
+}
+
+function bytesToStr( $bytes )
+{
+   $str = ''
+   foreach ($byte in $bytes)
+   {
+        $hex = convertToBase $byte, 16
+        [char][int] $c =  $hex
+        write-host $c
+   }
+
+   return $str
+}
+function convert2bin ( $numValue )
+{
+    return convertToBase $numValue 2
+}
 
 function validatePhonenumber( [string] $s )
 {

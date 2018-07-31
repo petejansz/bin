@@ -7,7 +7,8 @@ param
 (
     [switch]    $ca,
     [switch]    $core,
-    [switch]    $pdadmin,
+    [switch]    $pdadmin,   # default build only war
+    [switch]    $ear,       # also build pdadmin ear
     [switch]    $proc,
     [string]    $caVersion,
     [string]    $caHome,
@@ -38,11 +39,12 @@ $ScriptName = $MyInvocation.MyCommand.Name
 
 function showHelp()
 {
-    Write-Output "USAGE: $ScriptName [option] -core | -pdadmin | -proc"
+    Write-Output "USAGE: $ScriptName [option] -core | -pdadmin [-ear] | -proc"
     Write-Output "  option"
     Write-Output "    -ca                # Build entire CA"
     Write-Output '    -caVersion <version> default = $env:CA_VERSION'
     Write-Output "    -caHome    <path>"
+    Write-Output "    -ear               # Also build pd-admin EAR"
     Write-Output "    -pd2Home   <path>"
     Write-Output "    -build             # Build EAR/WAR file"
     Write-Output "    -deploy            # Deploy to local server container"
@@ -197,15 +199,18 @@ function doAdminFrontend()
     $pushOutput = pushToDev $artifact "pdadmin" "/tmp/server/pd2-admnin-rest/deploy"
     $pushOutput | Out-Null
 
-    # Build california-admin-rest-app EAR:
-    $componentPaths = @("$pd2Home/components/admin/admin-player-resources")
-    $componentPaths += "$caHome/components/admin/admin-rest"
-    build $componentPaths
-    $targetDir = "$caHome/components/admin/admin-rest/admin-rest-application/target"
-    deployArtifact $targetDir "california-admin-rest-app-${caVersion}.ear" "pd2-admin-rest"
-    $artifact = "{0}/{1}" -f $targetDir, "california-admin-rest-app-${caVersion}.ear"
-    $pushOutput = pushToDev $artifact "pdadmin" "/tmp/server/pd2-admnin-rest/deploy"
-    $pushOutput | Out-Null
+    if ($ear)
+    {
+        # Build california-admin-rest-app EAR:
+        $componentPaths = @("$pd2Home/components/admin/admin-player-resources")
+        $componentPaths += "$caHome/components/admin/admin-rest"
+        build $componentPaths
+        $targetDir = "$caHome/components/admin/admin-rest/admin-rest-application/target"
+        deployArtifact $targetDir "california-admin-rest-app-${caVersion}.ear" "pd2-admin-rest"
+        $artifact = "{0}/{1}" -f $targetDir, "california-admin-rest-app-${caVersion}.ear"
+        $pushOutput = pushToDev $artifact "pdadmin" "/tmp/server/pd2-admnin-rest/deploy"
+        $pushOutput | Out-Null
+    }
 }
 
 function doCrmCore()

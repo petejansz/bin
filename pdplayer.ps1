@@ -116,7 +116,7 @@ try
         $body = $body -replace 'newPassword_VALUE', $newpwd
         $password = $oldPassword
         $token = login $hostname $port $username $password $mobile
-        execRestChangePassword $hostname $port $token $body $mobile | Out-Null
+        execRestChangePassword $hostname $port $token $body $mobile #| Out-Null
     }
     elseif ($close)
     {

@@ -18,11 +18,14 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "pd2-admin",
-            "program": "${workspaceFolder}/pd2-admin.js",
+            "name": "add-api-keys.js",
+            "program": "${workspaceFolder}/add-api-keys.js",
             "args": [
-                "--api", "pers", "--host", "dev", " --playerid", "1000006077"
-            ]
+                " --configfile",
+                "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/install/sec-gateway-jboss5-container-install/src/main/env-config/default/jboss-env-config.xml",
+                "--keyfile", "keyfile.txt"
+            ],
+            "cwd": "${workspaceFolder}"
         },
         {
             "type": "PowerShell",
