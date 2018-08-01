@@ -18,6 +18,7 @@ description += '    get playerId -u <username>\n'
 description += '    make note\n'
 description += '    personal-info --playerid <playerId>\n'
 description += '    profile --playerid <playerId>\n'
+description += '    player-history --playerid <playerId>\n'
 description += '    search-players (city/state/zipcode/email/firtname/lastname\n'
 description += '    services --playerid <playerId> [ --serviceid number,number [--activate (default=suspend)] ]\n'
 description += '\n  NOTE: cat2 requires rengw tunnel to pd2 host'
@@ -26,7 +27,7 @@ program
     .version( '0.0.1' )
     .description( description )
     .usage( 'ARGS' )
-    .option( '--api < close | enums | mknote | playerid | per | pro | search | services >', 'API method' )
+    .option( '--api < close | enums | player-history | mknote | playerid | per | pro | search | services >', 'API method' )
     .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
@@ -68,6 +69,10 @@ async function main()
     else if ( program.api.match( /^per|^pro/i ) && program.playerid )
     {
         pd2admin.getPersProf( pdAdminSystem, program.playerid, program.api, commonResponseHandler )
+    }
+    else if ( program.api.match( /^Play.*Hist/i ) && program.playerid )
+    {
+        pd2admin.getPlayerHistory( pdAdminSystem, program.playerid, commonResponseHandler )
     }
     else if ( program.api === 'mknote' && program.playerid )
     {
