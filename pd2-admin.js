@@ -160,8 +160,8 @@ function createPdAdminSystem( program )
 
     if ( program.host === 'apl' )
     {
-        pdAdminSystem.url = 'http://10.164.172.231' + adminPlayersRestPath
-        pdAdminSystem.auth = 'ESMS UIVDHLE8DKBUVNB76XJ08ZF8WWTLN2'
+        pdAdminSystem.url = 'http://10.164.172.232' + adminPlayersRestPath
+        pdAdminSystem.auth = 'ESMS ' + process.env.CA_APL_PDADMIN_TOKEN
         Cookie = 'JSESSIONIDSSO=XF3avEAYFy-BVY93k2Fqbr37'
     }
     else if ( program.host === 'prod' )
