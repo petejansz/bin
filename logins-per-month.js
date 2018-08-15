@@ -1,9 +1,11 @@
+
 var fs = require( 'fs' )
 var path = require( 'path' )
 var util = require( 'util' )
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' );
-var csvParser = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/csv/node_modules/csv-parse/lib/sync' );
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" )
+const modulesPath = '/usr/share/node_modules/'
+var program = require( modulesPath + 'commander' )
+var csvParser = require( modulesPath + 'csv-parse/lib/sync' )
+var lib1 = require( modulesPath + 'pete-lib/pete-util' )
 
 program
     .version( '0.0.1' )
@@ -63,10 +65,10 @@ function initYearMonthMap()
     {
         for ( var monthName of calendarMonthsMap.values() )
         {
-            var key = mkYearMonthKey( year, monthName );
-            var monthMap = new Map();
-            monthMap.set( monthName, 0 );
-            yearMonthMap.set( key, monthMap );
+            var key = mkYearMonthKey( year, monthName )
+            var monthMap = new Map()
+            monthMap.set( monthName, 0 )
+            yearMonthMap.set( key, monthMap )
         }
     }, this );
 }

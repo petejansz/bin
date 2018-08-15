@@ -3,10 +3,11 @@
   Author: Pete Jansz
 */
 
-const axios = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/axios' )
-var str_to_stream = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/string-to-stream' )
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" )
+const modulesPath = '/usr/share/node_modules/'
+const axios = require( modulesPath + 'axios' )
+var str_to_stream = require( modulesPath + 'string-to-stream' )
+var program = require( modulesPath + 'commander' )
+var lib1 = require( modulesPath + 'pete-lib/pete-util' )
 
 program
     .version( '0.0.1' )

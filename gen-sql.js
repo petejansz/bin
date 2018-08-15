@@ -1,11 +1,12 @@
 // Pete Jansz
 // Generate SQL update script file for
 
+const modulesPath = '/usr/share/node_modules/'
 var fs = require( 'fs' )
 var util = require( 'util' )
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
+var program = require( modulesPath + 'commander' )
 var csvParser = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/csv/node_modules/csv-parse/lib/sync' )
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" )
+var lib1 = require( modulesPath + 'pete-lib/pete-util' )
 var path = require( 'path' )
 
 program

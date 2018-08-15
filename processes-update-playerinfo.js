@@ -3,11 +3,12 @@
   Author: Pete Jansz
 */
 
-var fs = require( "fs" );
-var path = require( "path" );
-var http = require( "http" );
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' );
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" );
+var fs = require( "fs" )
+var path = require( "path" )
+var http = require( "http" )
+const modulesPath = '/usr/share/node_modules/'
+var program = require( modulesPath + 'commander' )
+var lib1 = require( modulesPath + 'pete-lib/pete-util' )
 
 program
     .version( '0.0.1' )
@@ -16,28 +17,28 @@ program
     .option( '-i, --playerId <playerId>', 'PlayerID', parseInt )
     .option( '-h, --hostname <hostname>', 'Hostname' )
     .option( '-j, --jsonfile <jsonfile>', 'JSON file' )
-    .parse( process.argv );
+    .parse( process.argv )
 
-var exitValue = 0;
+process.exitCode = 1
 
 if ( !program.hostname || !program.jsonfile )
 {
-    program.help();
-    process.exit( 1 );
+    program.help()
+    process.exit()
 }
 
-jsonBody = require( path.resolve( program.jsonfile ) );
+jsonBody = require( path.resolve( program.jsonfile ) )
 
-jsonBody.callingClientId = lib1.getFirstIPv4Address();
-jsonBody.transactionIdBase = lib1.generateUUID();
-jsonBody.transactionTime = new Date().valueOf();
-jsonBody.callerChannelId = lib1.caConstants.channelId;
-jsonBody.callerSystemId = lib1.caConstants.systemId;
-jsonBody.siteID = lib1.caConstants.siteID;
-jsonBody.playerId = program.playerId;
-jsonBody.playerUpdate.playerId = program.playerId;
+jsonBody.callingClientId = lib1.getFirstIPv4Address()
+jsonBody.transactionIdBase = lib1.generateUUID()
+jsonBody.transactionTime = new Date().valueOf()
+jsonBody.callerChannelId = lib1.caConstants.channelId
+jsonBody.callerSystemId = lib1.caConstants.systemId
+jsonBody.siteID = lib1.caConstants.siteID
+jsonBody.playerId = program.playerId
+jsonBody.playerUpdate.playerId = program.playerId
 
-var restPath = "/california/api/v1/processes/update-player-data";
+var restPath = "/california/api/v1/processes/update-player-data"
 
 var options =
 {
@@ -46,37 +47,37 @@ var options =
     "port": lib1.crmProcessesPort,
     "path": restPath,
     "headers": lib1.commonHeaders
-};
+}
 
-options.headers['x-player-id'] = program.playerId;
+options.headers['x-player-id'] = program.playerId
 
 var req = http.request( options, function ( res )
 {
-    var chunks = [];
+    var chunks = []
 
     res.on( "data", function ( chunk )
     {
-        chunks.push( chunk );
+        chunks.push( chunk )
     } );
 
     res.on( "end", function ()
     {
-        var responseBodyBuffer = Buffer.concat( chunks );
-        var responseBodyStr = responseBodyBuffer.toString();
-        var responseBodyJSON = JSON.parse( responseBodyStr );
-        var errorEncountered = responseBodyJSON.errorEncountered == true;
+        var responseBodyBuffer = Buffer.concat( chunks )
+        var responseBodyStr = responseBodyBuffer.toString()
+        var responseBodyJSON = JSON.parse( responseBodyStr )
+        var errorEncountered = responseBodyJSON.errorEncountered == true
         if ( errorEncountered )
         {
-            exitValue = 1;
             console.log( 'errorEncountered: ' + errorEncountered
                 + ", errorCode: " + responseBodyJSON.errorCode
                 + ", transactionIdBase: " + jsonBody.transactionIdBase
-            );
+            )
         }
 
-        process.exit( exitValue );
+        process.exitCode = 0
+        process.exit()
     } );
 } );
 
-req.write( JSON.stringify( jsonBody ) );
-req.end();
+req.write( JSON.stringify( jsonBody ) )
+req.end()

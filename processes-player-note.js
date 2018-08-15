@@ -5,8 +5,9 @@
 
 var path = require( 'path' )
 const scriptName = path.basename( __filename )
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
-var processes = require(process.env.USERPROFILE + '/Documents/bin/processes-lib')
+const modulesPath = '/usr/share/node_modules/'
+var program = require( modulesPath + 'commander' )
+var processes = require(modulesPath + 'pete-lib/processes-lib')
 
 program
     .version( '0.0.1' )

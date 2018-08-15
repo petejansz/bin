@@ -3,13 +3,14 @@
   Author: Pete Jansz 2017
 */
 
+const modulesPath = '/usr/share/node_modules/'
 var path = require( 'path' )
 var util = require( 'util' )
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
-var str_to_stream = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/string-to-stream' )
-//var stream_to_str = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/stream-to-string' )
-var pd2admin = require( process.env.USERPROFILE + '/Documents/bin/pd2-admin-lib' )
-var lib1 = require( process.env.USERPROFILE + '/Documents/bin/lib1.js' )
+var program = require( modulesPath + 'commander' )
+var str_to_stream = require( modulesPath + 'string-to-stream' )
+//var stream_to_str = require( 'stream-to-string' )
+var pd2admin = require( modulesPath + 'pete-lib/pd2-admin-lib' )
+var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
 
 var description = 'pd2-admin CLI api syntax\n\n'
 description += '    close account --playerid <playerId>\n'
@@ -111,7 +112,7 @@ function supportedHosts()
 
 function streamIt( o )
 {
-    str_to_stream( lib1.formatJSON( o ) ).pipe( process.stdout )
+    str_to_stream( peteUtil.formatJSON( o ) ).pipe( process.stdout )
     process.exitCode = 0
 }
 
