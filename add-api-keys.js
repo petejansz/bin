@@ -1,12 +1,10 @@
 // https://www.npmjs.com/package/xml2js
 
 var fs = require( "fs" )
-var path = require( "path" )
 var util = require( 'util' )
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" )
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
-var xml2js = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/xml2js' )
-var parseString = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/xml2js' ).parseString
+const modulesPath = '/usr/share/node_modules/'
+var program = require( modulesPath + 'commander' )
+var xml2js = require( modulesPath + 'xml2js' )
 
 program
     .version( '0.0.1' )
@@ -30,7 +28,7 @@ var keys = [] = require( 'fs' ).readFileSync( program.keyfile, 'utf-8' ).split( 
 
 fs.readFile( program.configfile, 'utf-8', function ( err, xmlData )
 {
-    parseString( xmlData, function ( err, resultObj )
+    xml2js.parseString( xmlData, function ( err, resultObj )
     {
         if ( err ) console.log( err )
         var json = resultObj
