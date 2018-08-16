@@ -4,10 +4,8 @@
 */
 
 const modulesPath = '/usr/share/node_modules/'
-const axios = require( modulesPath + 'axios' )
 var program = require( modulesPath + 'commander' )
-var lib1 = require( modulesPath + 'pete-lib/pete-util' )
-var path = require( 'path' )
+var processes = require(modulesPath + 'pete-lib/processes-lib')
 
 program
     .version( '0.0.1' )
@@ -21,34 +19,26 @@ program
 
 process.exitCode = 1
 
-if ( !program.playerId || !program.hostname )
+if ( !program.playerId || !program.hostname || !(program.activate || program.close))
 {
     program.help()
 }
 
-var restPath = '/california/api/v1/processes/'
+var restPath, request
 
-if ( program.activate )
+if (program.activate || program.close)
 {
-    restPath += 'account-activation'
-}
-else if ( program.close )
-{
-    restPath += 'close-account'
-}
-else
-{
-    program.help()
+    if (program.activate) { restPath = '/california/api/v1/processes/account-activation' }
+    else                  { restPath = '/california/api/v1/processes/close-account'}
+    request = createAccountRequest()
 }
 
-var requestData = createRequest( program.close, program.playerId )
-
-createAxiosInstance( program.hostname, program.playerId ).
-    post( restPath, requestData ).then( function ( response )
+processes.createAxiosInstance( program.hostname, program.playerId ).
+    post( restPath, request ).then( function ( response )
     {
         if ( response.data.errorEncountered )
         {
-            console.error( requestData.transactionIdBase )
+            console.error( response.data )
         }
         else
         {
@@ -56,41 +46,22 @@ createAxiosInstance( program.hostname, program.playerId ).
         }
     } )
 
-function createRequest( close, playerId )
+// End main logic
+// Local functions
+function createAccountRequest( )
 {
-    var transactionTime = new Date().valueOf()
-    var reqData =
-        {
-            callerChannelId: lib1.caConstants.channelId,
-            callingClientId: lib1.getFirstIPv4Address(),
-            callerSystemId: lib1.caConstants.systemId,
-            transactionIdBase: lib1.generateUUID(),
-            transactionTime: transactionTime,
-            siteID: lib1.caConstants.siteID,
-        }
+    var reqData = processes.createProcessesRequest()
 
-    if ( close )
+    if ( program.close )
     {
-        reqData.playerId = playerId
-        reqData.reason = path.basename( __filename ) + ': transactionTime: ' + transactionTime
+        reqData.playerId = program.playerId
+        reqData.reason = ': transactionTime: ' + reqData.transactionTime
+
     }
     else // activate
     {
-        reqData.token = playerId
+        reqData.token = program.playerId
     }
 
     return reqData
-}
-
-function createAxiosInstance( host, playerId )
-{
-    var headers = lib1.commonHeaders
-    headers['x-player-id'] = program.playerId
-
-    return axios.create(
-        {
-            baseURL: 'http://' + host + ':' + lib1.crmProcessesPort,
-            headers: headers,
-        }
-    )
 }
