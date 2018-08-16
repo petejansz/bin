@@ -2,11 +2,10 @@
 // Generate SQL update script file for
 
 const modulesPath = '/usr/share/node_modules/'
+var program = require( modulesPath + 'commander' )
+var csvParser = require( modulesPath + 'csv-parse/lib/sync' )
 var fs = require( 'fs' )
 var util = require( 'util' )
-var program = require( modulesPath + 'commander' )
-var csvParser = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/csv/node_modules/csv-parse/lib/sync' )
-var lib1 = require( modulesPath + 'pete-lib/pete-util' )
 var path = require( 'path' )
 
 program
