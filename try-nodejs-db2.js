@@ -1,12 +1,14 @@
 // First NodeJS database (DB2) query tool.
 // Pete Jansz, Oct 2017
 
+const modulesPath = '/usr/share/node_modules/'
+var ibmdb = require( modulesPath + '/ibm_db' )
+var program = require( modulesPath + 'commander' )
+var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
+var path = require( 'path' )
 var fs = require( 'fs' )
 var util = require( 'util' )
-var ibmdb = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/ibm_db' )
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' )
-var path = require( 'path' )
-var scriptName = path.basename( __filename )
+const scriptName = path.basename( __filename )
 
 program
     .version( '0.0.1' )
@@ -21,12 +23,11 @@ program
     .option( '-P, --password [password]', 'Password' )
     .parse( process.argv )
 
-var exitValue = 0
+process.exitCode = 1
 
 if ( !program.sqlfile && !program.sqlstmt )
 {
     program.help()
-    process.exit( 1 )
 }
 
 // Default connection values:
@@ -57,17 +58,16 @@ if ( program.sqlstmt )
 }
 else
 {
-    sqlStatement = fs.readFileSync( program.sqlfile ).toString();
+    sqlStatement = fs.readFileSync( program.sqlfile ).toString()
 }
 
 var conn = ibmdb.open( dsn, function ( err, conn )
 {
-    console.error( "DB connected (seconds): " + elapsedTime( startTime ) );
+    console.error( "DB connected (seconds): " + peteUtil.elapsedTime( startTime ) )
 
     if ( err )
     {
-        console.error( "error: ", err.message );
-        process.exit( 1 );
+        console.error( "error: ", err.message )
     }
     else
     {
@@ -75,23 +75,25 @@ var conn = ibmdb.open( dsn, function ( err, conn )
         {
             if ( err )
             {
-                console.error( err );
+                console.error( err )
             }
             else
             {
                 if ( program.csv )
                 {
-                    var sep = ',';
-                    var stringArray = convertJSONToStringArray( jsonResultset, sep );
+                    var sep = ','
+                    var stringArray = peteUtil.convertJSONToStringArray( jsonResultset, sep )
                     stringArray.forEach( function ( elem )
                     {
-                        console.log( elem );
+                        console.log( elem )
                     } );
                 }
                 else
                 {
-                    console.log( JSON.stringify(jsonResultset) );
+                    console.log( JSON.stringify(jsonResultset) )
                 }
+
+                process.exitCode = 0
             }
             conn.close( function ()
             {
@@ -101,36 +103,3 @@ var conn = ibmdb.open( dsn, function ( err, conn )
     }
 } );
 
-function convertJSONToStringArray( data, sep )
-{
-    var stringArray = [];
-
-    var columnNames = Object.keys( data[0] );
-    var headers = columnNames.join( sep );
-    stringArray.push( headers );
-
-    for ( var i = 1; i < data.length; i++ )
-    {
-        var row = data[i];
-        var values = [];
-        columnNames.forEach( function ( columnName )
-        {
-            values.push( row[columnName] );
-        } );
-
-        stringArray.push( values.join( sep ) );
-    }
-
-    return stringArray;
-}
-
-function elapsedTime( startTime )
-{
-    var endTime = new Date();
-    var timeDiffMilliseconds = endTime - startTime;
-    // strip the ms
-    var timeDiffSeconds = timeDiffMilliseconds /= 1000;
-
-    // get seconds
-    return Math.round( timeDiffSeconds );
-}
