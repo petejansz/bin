@@ -3,11 +3,12 @@
   Author: Pete Jansz
 */
 
-var http = require( "http" );
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' );
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" );
-var path = require( 'path' );
-var scriptName = path.basename( __filename );
+const modulesPath = '/usr/share/node_modules/'
+var program = require( modulesPath + 'commander' )
+var lib1 = require( modulesPath + 'pete-lib/pete-util' )
+var http = require( "http" )
+var path = require( 'path' )
+var scriptName = path.basename( __filename )
 
 program
     .version( '0.0.1' )
@@ -22,29 +23,28 @@ program
     .option( '-t, --token [token]', 'One time token' )
     .option( '-j, --jsonfile [jsonfile]', 'JSON file' )
     .option( '-h, --hostname <hostname>', 'Hostname' )
-    .parse( process.argv );
+    .parse( process.argv )
 
-var exitValue = 0;
+process.exitCode = 1
 
 if ( !program.hostname )
 {
-    program.help();
-    process.exit( 1 );
+    program.help()
 }
 
-var token = null;
+var token = null
 
 if ( program.jsonfile )
 {
-    var jsonBody = require( program.jsonfile );
-    token = jsonBody.oneTimeToken;
+    var jsonBody = require( program.jsonfile )
+    token = jsonBody.oneTimeToken
 }
 else if (program.token)
 {
     token = program.token;
     if ( token.match( /=/ ) )
     {
-        token = token.split( '=' )[1];
+        token = token.split( '=' )[1]
     }
 }
 
@@ -64,18 +64,16 @@ else if ( program.change )
 }
 else
 {
-    program.help();
-    process.exit( 1 );
+    program.help()
 }
 
-var transactionTime = new Date().valueOf();
 var jsonBody =
     {
         "callerChannelId": lib1.caConstants.channelId,
         "callingClientId": lib1.getFirstIPv4Address(),
         "callerSystemId": lib1.caConstants.systemId,
         "transactionIdBase": lib1.generateUUID(),
-        "transactionTime": transactionTime,
+        "transactionTime": new Date().valueOf(),
         "siteID": lib1.caConstants.siteID,
         // "oneTimeToken": token,
         "oldPassword": program.oldpassword,
@@ -89,41 +87,43 @@ var jsonBody =
             "port": lib1.crmProcessesPort,
             "path": restPath,
             "headers": lib1.commonHeaders
-        };
+        }
 
 
 // console.log(JSON.stringify(jsonBody))
 
 var req = http.request( options, function ( res )
 {
-    var chunks = [];
+    var chunks = []
 
     res.on( "data", function ( chunk )
     {
-        chunks.push( chunk );
+        chunks.push( chunk )
     } );
 
     res.on( "end", function ()
     {
-        var responseBodyBuffer = Buffer.concat( chunks );
-        var responseBodyStr = responseBodyBuffer.toString();
-        var responseBodyJSON = JSON.parse( responseBodyStr );
-        var errorEncountered = responseBodyJSON.errorEncountered == true;
+        var responseBodyBuffer = Buffer.concat( chunks )
+        var responseBodyStr = responseBodyBuffer.toString()
+        var responseBodyJSON = JSON.parse( responseBodyStr )
+        var errorEncountered = responseBodyJSON.errorEncountered == true
         if ( errorEncountered )
         {
-            exitValue = 1;
             console.log( 'errorEncountered: ' + errorEncountered
                 + ", errorCode: " + responseBodyJSON.errorCode
                 + ", transactionIdBase: " + jsonBody.transactionIdBase
-            );
+            )
         }
 
         if ( responseBodyJSON.oneTimeToken != null )
-        { console.log( responseBodyJSON.oneTimeToken ); }
+        {
+            console.log( responseBodyJSON.oneTimeToken )
+        }
 
-        process.exit( exitValue );
-    } );
-} );
+        process.exitCode = 1
+        process.exit()
+    } )
+} )
 
-req.write( JSON.stringify( jsonBody ) );
-req.end();
+req.write( JSON.stringify( jsonBody ) )
+req.end()
