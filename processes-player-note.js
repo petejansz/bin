@@ -24,9 +24,9 @@ if ( !program.hostname || !program.playerId )
     program.help()
 }
 
-processes.createNote( program.hostname, program.playerId, processResponse, errorHandler )
+processes.createNote( program.hostname, program.playerId, createNoteResponseHandler, errorHandler )
 
-function processResponse( response )
+function createNoteResponseHandler( response )
 {
     if ( response.note )
     {
@@ -41,5 +41,5 @@ function processResponse( response )
 
 function errorHandler( error )
 {
-    console.log( error )
+    console.error( error )
 }
