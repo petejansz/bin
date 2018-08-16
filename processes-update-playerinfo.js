@@ -24,7 +24,6 @@ process.exitCode = 1
 if ( !program.hostname || !program.jsonfile )
 {
     program.help()
-    process.exit()
 }
 
 jsonBody = require( path.resolve( program.jsonfile ) )

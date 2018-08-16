@@ -3,9 +3,10 @@
   Author: Pete Jansz
 */
 
-var http = require( "http" );
-var program = require( process.env.USERPROFILE + '/AppData/Roaming/npm/node_modules/commander' );
-var lib1 = require( process.env.USERPROFILE + "/Documents/bin/lib1.js" );
+var http = require( "http" )
+const modulesPath = '/usr/share/node_modules/'
+var program = require( modulesPath + 'commander' )
+var lib1 = require( modulesPath + 'pete-lib/pete-util' )
 
 program
     .version( '0.0.1' )
@@ -13,14 +14,14 @@ program
     .usage( 'oauth-tokens -h <hostname> -a <authcode>' )
     .option( '-h, --hostname <hostname>', 'Hostname' )
     .option( '-a, --authcode <authcode>', 'authcode' )
-    .parse( process.argv );
+    .parse( process.argv )
 
-var exitValue = 0;
+process.exitCode = 1
 
 if ( !program.hostname || !program.authcode )
 {
-    program.help();
-    process.exit( 1 );
+    program.help()
+    process.exit()
 }
 
 var siteID = 35;
@@ -46,7 +47,7 @@ var options = {
         "x-site-id": siteID,
         "cache-control": "no-cache",
     }
-};
+}
 
 var req = http.request( options, function ( res )
 {
@@ -61,19 +62,19 @@ var req = http.request( options, function ( res )
     {
         if ( this.statusCode == 200 )
         {
-            var responseBodyBuffer = Buffer.concat( chunks );
-            var responseBodyJSON = JSON.parse( responseBodyBuffer.toString() );
-            console.log( responseBodyJSON[1].token );
-            process.exit( exitValue );
+            var responseBodyBuffer = Buffer.concat( chunks )
+            var responseBodyJSON = JSON.parse( responseBodyBuffer.toString() )
+            console.log( responseBodyJSON[1].token )
+            process.exitCode = 0
+            process.exit()
         }
         else
         {
-            console.error( this.statusCode + ": " + this.statusMessage );
-            exitValue = 1;
-            process.exit( exitValue );
+            console.error( this.statusCode + ": " + this.statusMessage )
+            process.exit( )
         }
-    } );
-} );
+    } )
+} )
 
-req.write( JSON.stringify( jsonRequestBody ) );
-req.end();
+req.write( JSON.stringify( jsonRequestBody ) )
+req.end()
