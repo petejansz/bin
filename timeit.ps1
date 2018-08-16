@@ -22,9 +22,13 @@ $sw = [Diagnostics.Stopwatch]::StartNew()
 # $it = which $it
 # $psArgs = @($it) + @("$args")
 # Start-Process node.exe -NoNewWindow -Wait -ArgumentList $psArgs
-#(admin-search-players.js -h localhost -p 8380 -e 'zzzz%'|ConvertFrom-Json).Count
-#oauth-login.js  -h cadev1 -u test5@yopmail.com -p RegTest6100 | Out-Null
-pd-login.js  -h cadev1 -u test5@yopmail.com -p RegTest6100 | Out-Null
-#admin-get-playerid -h localhost -p 8380 -u test888@yopmail.com | Out-Null
+$sw = [Diagnostics.Stopwatch]::StartNew()
+$token = oauth-login.js -h cadev1 -u test18@yopmail.com -p Password2
+Write-Output $token
+$sw.Stop()
+Write-Host -ForegroundColor Green $sw.Elapsed.TotalSeconds
+
+$token = pd-login.js    -h cadev1 -u test18@yopmail.com -p Password2
+Write-Output $token
 $sw.Stop()
 Write-Host -ForegroundColor Green $sw.Elapsed.TotalSeconds
