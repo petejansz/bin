@@ -29,7 +29,7 @@ program
     .description( description )
     .usage( 'ARGS' )
     .option( '--api < close | enums | player-history | mknote | playerid | per | pro | search | services >', 'API method' )
-    .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod)' )
+    .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod|pdc|bdc)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
     .option( '--city [city]', 'City' )
@@ -107,7 +107,7 @@ function commanderCsvList( val )
 
 function supportedHosts()
 {
-    return program.host && program.host.match( /^apl$|^prod$|^cat1$|^cat2$|^localhost$|^dev$/i )
+    return program.host && program.host.match( /^apl$|^bdc$|^pdc$|^prod$|^cat1$|^cat2$|^localhost$|^dev$/i )
 }
 
 function streamIt( o )
@@ -165,7 +165,14 @@ function createPdAdminSystem( program )
         pdAdminSystem.auth = 'ESMS ' + process.env.CA_APL_PDADMIN_TOKEN
         Cookie = 'JSESSIONIDSSO=XF3avEAYFy-BVY93k2Fqbr37'
     }
-    else if ( program.host === 'prod' )
+    else if ( program.host === 'bdc')
+    {
+        pdAdminSystem.url = 'https://10.203.3.1' + adminPlayersRestPath
+        pdAdminSystem.auth = 'ESMS ' + process.env.CA_BDC_PDADMIN_TOKEN
+        pdAdminSystem.Cookie = 'JSESSIONIDSSO=aLTCk9WR7OWfhEDuJ3NDMFVy'
+        pdAdminSystem.rejectUnauthorized = false
+    }
+    else if ( program.host.match(/^prod$|^pdc$/ ))
     {
         pdAdminSystem.url = 'https://172.25.54.46' + adminPlayersRestPath
         pdAdminSystem.auth = 'ESMS ' + process.env.CA_PROD_PDADMIN_TOKEN
