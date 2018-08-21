@@ -31,7 +31,7 @@ if ($h -or $help) {showHelp}
 if ( -not($file) ) {showHelp}
 
 $times = Get-Content $file `
-    | ForEach-Object {if ($_ -match "^201[0-9]{1}") {$_.split()[0]} }
+    | ForEach-Object {if ($_ -match "^201[0-9]{1}.* Archive pass:") {$_.split()[0]} }
 
 for ($i = 0; $i -lt $times.Length; $i++ )
 {
@@ -55,7 +55,7 @@ for ($i = 0; $i -lt $times.Length; $i++ )
         if ($difference -gt 1)
         {
             $delta = [System.Math]::Round($difference, 2)
-            Write-Output ("{0}: {1}" -f $file, $delta)
+            Write-Output ("{0}: {1} {2} {3}" -f $file, $current, $next, $delta)
         }
     }
 }
