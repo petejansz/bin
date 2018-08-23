@@ -43,7 +43,7 @@ if ( program.activate || program.close )
     {
         restPath += 'close-account'
         request.playerId = program.playerId
-        request.reason = ': transactionTime: ' + reqData.transactionTime
+        request.reason = ': transactionTime: ' + request.transactionTime
     }
 }
 else if ( program.chpwd )
