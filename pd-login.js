@@ -7,7 +7,7 @@ const modulesPath = '/usr/share/node_modules/'
 const axios = require( modulesPath + 'axios' )
 var str_to_stream = require( modulesPath + 'string-to-stream' )
 var program = require( modulesPath + 'commander' )
-var lib1 = require( modulesPath + 'pete-lib/pete-util' )
+var igtCas = require( modulesPath + 'pete-lib/igt-cas' )
 
 program
     .version( '0.0.1' )
@@ -26,16 +26,12 @@ if ( !program.hostname && !program.username || !program.password )
 }
 
 var oauthAxiosInstance = createAxiosInstance( program.hostname )
-loginForOAuthToken( oauthAxiosInstance, program.username, program.password, getOAuthCodeResponseHandler )
+loginForOAuthToken( oauthAxiosInstance, program.hostname, program.username, program.password, getOAuthCodeResponseHandler )
 
-async function loginForOAuthToken( oauthAxiosInstance, username, password )
+async function loginForOAuthToken( oauthAxiosInstance, host, username, password )
 {
-    var reqData =
-        {
-            siteId: lib1.caConstants.siteID,
-            clientId: 'SolSet2ndChancePortal',
-            resourceOwnerCredentials: { USERNAME: username, PASSWORD: password }
-        }
+    var reqData = igtCas.createLoginRequest( host )
+    reqData.resourceOwnerCredentials = { USERNAME: username, PASSWORD: password }
 
     // Get OAuth authCode
     oauthAxiosInstance.post( '/api/v1/oauth/login', reqData ).then( function ( response )
@@ -48,17 +44,14 @@ async function loginForOAuthToken( oauthAxiosInstance, username, password )
 function getOAuthCodeResponseHandler( response )
 {
     var oAuthCode = response.data[0].authCode
-    getLoginToken( oauthAxiosInstance, oAuthCode, lib1.caConstants.clientId, lib1.caConstants.siteID )
+    getLoginToken( oauthAxiosInstance, oAuthCode, program.hostname )
 }
 
-function getLoginToken( oauthAxiosInstance, oAuthCode, clientId, siteId )
+function getLoginToken( oauthAxiosInstance, oAuthCode, hostname )
 {
-    var reqData =
-        {
-            authCode: oAuthCode,
-            clientId: clientId,
-            siteId: siteId
-        }
+    var reqData = igtCas.createLoginRequest( hostname )
+    reqData.authCode = oAuthCode
+
     oauthAxiosInstance.post( '/api/v1/oauth/self/tokens', reqData ).then( function ( response )
     {
         getOAuthLoginTokenResponseHandler( response )
@@ -67,8 +60,7 @@ function getLoginToken( oauthAxiosInstance, oAuthCode, clientId, siteId )
 
 function getOAuthLoginTokenResponseHandler( response )
 {
-    var token = response.data[1].token
-    str_to_stream( token ).pipe( process.stdout )
+    str_to_stream( response.data[1].token ).pipe( process.stdout )
     process.exitCode = 0
 }
 
@@ -84,7 +76,7 @@ function createAxiosInstance( host )
     return axios.create(
         {
             baseURL: proto + '://' + host,
-            headers: lib1.commonHeaders
+            headers: igtCas.createHeaders( host )
         }
     )
 }
