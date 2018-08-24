@@ -13,22 +13,30 @@ var pd2admin = require( modulesPath + 'pete-lib/pd2-admin-lib' )
 var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
 
 var description = 'pd2-admin CLI api syntax\n\n'
-description += '    close account --playerid <playerId>\n'
-description += '    get enums\n'
-description += '    get playerId -u <username>\n'
-description += '    make note\n'
-description += '    personal-info --playerid <playerId>\n'
-description += '    profile --playerid <playerId>\n'
-description += '    player-history --playerid <playerId>\n'
-description += '    search-players (city/state/zipcode/email/firtname/lastname\n'
-description += '    services --playerid <playerId> [ --serviceid number,number [--activate (default=suspend)] ]\n'
+description += '  --api GET:                  \n'
+description += '        playerId -u <username>\n'
+description += '        enums\n'
+description += '        communication-preferences --playerid <playerId>\n'
+description += '        note                      --playerid <playerId>\n'
+description += '        notifications             --playerid <playerId>\n'
+description += '        notifications-preferences --playerid <playerId>\n'
+description += '        personal-info             --playerid <playerId>\n'
+description += '        player-history            --playerid <playerId>\n'
+description += '        player-history-status     --playerid <playerId>\n'
+description += '        profile                   --playerid <playerId>\n'
+description += '        services                  --playerid <playerId>\n'
+description += '  --api SEARCH/UPDATES:\n'
+description += '        close account             --playerid <playerId>\n'
+description += '        make note\n'
+description += '        search-players (city/state/zipcode/email/firtname/lastname)\n'
+description += '        services --activate | --suspend --serviceid sid,sid --playerid <playerId>\n'
 description += '\n  NOTE: cat2 requires rengw tunnel to pd2 host'
 
 program
     .version( '0.0.1' )
     .description( description )
     .usage( 'ARGS' )
-    .option( '--api < close | enums | player-history | mknote | playerid | per | pro | search | services >', 'API method' )
+    .option( '--api < name >', 'REST API path-name' )
     .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod|pdc|bdc)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
@@ -67,13 +75,9 @@ async function main()
     {
         pd2admin.getPlayerId( pdAdminSystem, program.username, playerIdResponseHandler )
     }
-    else if ( program.api.match( /^per|^pro/i ) && program.playerid )
+    else if ( program.api.match( /-preferences$|note|notifications|^personal-info$|^profile$|player-history/i ) && program.playerid )
     {
-        pd2admin.getPersProf( pdAdminSystem, program.playerid, program.api, commonResponseHandler )
-    }
-    else if ( program.api.match( /^Play.*Hist/i ) && program.playerid )
-    {
-        pd2admin.getPlayerHistory( pdAdminSystem, program.playerid, commonResponseHandler )
+        pd2admin.getPlayerThing( pdAdminSystem, program.playerid, program.api, commonResponseHandler )
     }
     else if ( program.api === 'mknote' && program.playerid )
     {

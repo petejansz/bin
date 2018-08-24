@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
     {
         "type": "PowerShell",
         "request": "launch",
@@ -18,12 +19,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "add-api-keys.js",
-            "program": "${workspaceFolder}/add-api-keys.js",
+            "name": "pd-login.js",
+            "program": "${workspaceFolder}/pd-login.js",
             "args": [
-                " --configfile",
-                "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/install/sec-gateway-jboss5-container-install/src/main/env-config/default/jboss-env-config.xml",
-                "--keyfile", "keyfile.txt"
+                "-h", "mobile-cadev1",
+                "-u", "test22@yopmail.com", "-p", "RegTest6100"
             ],
             "cwd": "${workspaceFolder}"
         },
