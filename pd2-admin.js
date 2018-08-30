@@ -26,9 +26,9 @@ description += '        player-history-status     --playerid <playerId>\n'
 description += '        profile                   --playerid <playerId>\n'
 description += '        services                  --playerid <playerId>\n'
 description += '  --api SEARCH/UPDATES:\n'
-description += '        close account             --playerid <playerId>\n'
-description += '        make note\n'
-description += '        search-players (city/state/zipcode/email/firtname/lastname)\n'
+description += '        close                     --playerid <playerId> # Close the account\n'
+description += '        mknote                    --playerid <playerId>\n'
+description += '        search-players --<city|state|zipcode|email|firstname|lastname>\n'
 description += '        services --activate | --suspend --serviceid sid,sid --playerid <playerId>\n'
 description += '\n  NOTE: cat2 requires rengw tunnel to pd2 host'
 
@@ -49,6 +49,7 @@ program
     .option( '--playerid [playerid]', 'PlayerId', parseInt )
     .option( '--serviceids <number,number>', 'CSV service ids', commanderCsvList )
     .option( '--activate', 'Activate' )
+    .option( '--suspend', 'Suspend' )
     .option( '-u, --username [username]', 'Username' )
     .parse( process.argv )
 
@@ -91,11 +92,19 @@ async function main()
     }
     else if ( program.api === 'services' && program.playerid )
     {
-        var services =
+        var services = { playerId: program.playerid }
+
+        if ( program.activate || program.suspend )
         {
-            playerId: program.playerid,
-            activate: program.activate ? 'activate' : 'suspend',
-            serviceIds: ( program.serviceids && program.serviceids.length === 2 ) ? program.serviceids : null
+            if ( program.serviceids && program.serviceids.length === 2 )
+            {
+                services.activate = program.activate ? 'activate' : 'suspend'
+                services.serviceIds = program.serviceids
+            }
+            else
+            {
+                program.help()
+            }
         }
 
         pd2admin.services( pdAdminSystem, services, servicesResponseHandler )
@@ -169,14 +178,14 @@ function createPdAdminSystem( program )
         pdAdminSystem.auth = 'ESMS ' + process.env.CA_APL_PDADMIN_TOKEN
         Cookie = 'JSESSIONIDSSO=XF3avEAYFy-BVY93k2Fqbr37'
     }
-    else if ( program.host === 'bdc')
+    else if ( program.host === 'bdc' )
     {
         pdAdminSystem.url = 'https://10.203.3.1' + adminPlayersRestPath
         pdAdminSystem.auth = 'ESMS ' + process.env.CA_BDC_PDADMIN_TOKEN
         pdAdminSystem.Cookie = 'JSESSIONIDSSO=aLTCk9WR7OWfhEDuJ3NDMFVy'
         pdAdminSystem.rejectUnauthorized = false
     }
-    else if ( program.host.match(/^prod$|^pdc$/ ))
+    else if ( program.host.match( /^prod$|^pdc$/ ) )
     {
         pdAdminSystem.url = 'https://172.25.54.46' + adminPlayersRestPath
         pdAdminSystem.auth = 'ESMS ' + process.env.CA_PROD_PDADMIN_TOKEN
