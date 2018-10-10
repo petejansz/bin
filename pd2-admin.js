@@ -33,7 +33,7 @@ description += '        services --activate | --suspend --serviceid sid,sid --pl
 description += '\n  NOTE: cat2 requires rengw tunnel to pd2 host'
 
 program
-    .version( '0.0.1' )
+    .version( '1.0.0' )
     .description( description )
     .usage( 'ARGS' )
     .option( '--api < name >', 'REST API path-name' )
@@ -76,7 +76,7 @@ async function main()
     {
         pd2admin.getPlayerId( pdAdminSystem, program.username, playerIdResponseHandler )
     }
-    else if ( program.api.match( /-preferences$|note|notifications|^personal-info$|^profile$|player-history/i ) && program.playerid )
+    else if ( program.api.match( /-preferences$|^note$|notifications|^personal-info$|^profile$|player-history/i ) && program.playerid )
     {
         pd2admin.getPlayerThing( pdAdminSystem, program.playerid, program.api, commonResponseHandler )
     }
