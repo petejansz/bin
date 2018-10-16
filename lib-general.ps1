@@ -1,3 +1,7 @@
+<#
+    Author: Pete Jansz, IGT, June 2017
+#>
+
 #$mailRegex = "^[^\\s].{0,64}@.{1,200}\\..{0,55}[^\\s]$"
 #$contractId = "^\\d{10}$"
 #$phone = "^\\d{10,14}$"
