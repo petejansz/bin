@@ -7,6 +7,7 @@ var fs = require( 'fs' )
 var util = require( 'util' )
 const modulesPath = '/usr/share/node_modules/'
 var program = require( modulesPath + 'commander' )
+var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
 
 program
     .version( '1.0.0' )
@@ -17,6 +18,8 @@ program
     .option( '--outhtml [outhtml]', 'Output html filename' )
     .option( '--outjson [outjson]', 'Output outjson filename' )
     .option( '--stdout', 'Write JSON or selected out file type to stdout' )
+    .option( '--sort-asc <key>', 'Sort ascending by key' )
+    .option( '--sort-desc <key>', 'Sort descending by key' )
 
     .parse( process.argv )
 
@@ -31,6 +34,15 @@ if ( !program.infile )
 
 var logdata = fs.readFileSync( program.infile ).toString()
 monitors = processData( logdata )
+
+if ( program.sortAsc )
+{
+    monitors = monitors.sort( peteUtil.compareValues( program.sortAsc, 'asc' ) )
+}
+else if ( program.sortDesc )
+{
+    monitors = monitors.sort( peteUtil.compareValues( program.sortDesc, 'desc' ) )
+}
 
 if ( program.outjson )
 {
@@ -72,7 +84,8 @@ if ( program.outhtml )
 }
 
 process.exitCode = 0
-/////////////////////////////////////////////////////////////////////////////////////
+
+/////// local functions ///////////////////////////////////////////////
 
 function processData( logdata )
 {
