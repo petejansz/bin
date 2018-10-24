@@ -181,6 +181,7 @@ function convertMonitorToCsv( monitor )
         monitor.requests,
         monitor.responses,
         monitor.errors,
+        monitor.maxcon,
         monitor._99thMs,
         monitor._95thMs,
         monitor._90thMs,
