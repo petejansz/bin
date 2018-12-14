@@ -32,7 +32,7 @@ function createHeader( [boolean]$mobile )
             'x-site-id'      = $SiteId               ; `
             'x-client-id'    = $clientId             ; `
             'X-CLIENTIP'     = (get-ipv4InetAddress)    ; `
-            'X-ESA-API-KEY'  = "AGpTKF0ze+6H6x3NTqjbVrMfcvt3MoZ7"   ; `
+            'X-ESA-API-KEY'  = 'di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b'  ; `
             'X-DEVICE-UUID'  = ('UUID-' + (get-ipv4InetAddress) ); `
     }
 
