@@ -4,7 +4,7 @@
 */
 
 const modulesPath = '/usr/share/node_modules/'
-var path = require( 'path' )
+var fs = require( 'fs' )
 var util = require( 'util' )
 var program = require( modulesPath + 'commander' )
 var str_to_stream = require( modulesPath + 'string-to-stream' )
@@ -26,17 +26,18 @@ description += '        player-history-status     --playerid <playerId>\n'
 description += '        profile                   --playerid <playerId>\n'
 description += '        services                  --playerid <playerId>\n'
 description += '  --api SEARCH/UPDATES:\n'
-description += '        close                     --playerid <playerId> # Close the account\n'
+description += '        actacct  <pers-info-file> --playerid <playerId> # Activate account\n'
+description += '        closeacct                 --playerid <playerId> # Close account\n'
 description += '        mknote                    --playerid <playerId>\n'
 description += '        search-players --<city|state|zipcode|email|firstname|lastname>\n'
-description += '        services --activate | --suspend --serviceid sid,sid --playerid <playerId>\n'
-description += '\n  NOTE: cat2 requires rengw tunnel to pd2 host'
+description += '        services --activate | --suspend --serviceids sid,sid --playerid <playerId>\n'
 
 program
     .version( '1.0.0' )
     .description( description )
     .usage( 'ARGS' )
     .option( '--api < name >', 'REST API path-name' )
+    .option( '--file <file>', 'Close account with admin personal-info file')
     .option( '--host [hostname]', 'Hostname (apl|cat1|cat2|dev|localhost|prod|pdc|bdc)' )
     .option( '--port [port]', 'Port number', parseInt )
     .option( '--street [street]', 'Street' )
@@ -48,9 +49,10 @@ program
     .option( '--lastname [lastname]', 'Last name' )
     .option( '--playerid [playerid]', 'PlayerId', parseInt )
     .option( '--serviceids <number,number>', 'CSV service ids', commanderCsvList )
-    .option( '--activate', 'Activate' )
-    .option( '--suspend', 'Suspend' )
+    .option( '--activate', 'Activate services' )
+    .option( '--suspend', 'Suspend services' )
     .option( '-u, --username [username]', 'Username' )
+    .option( '-v, --verbose', 'Verbose response')
     .parse( process.argv )
 
 process.exitCode = 1
@@ -64,7 +66,13 @@ async function main()
 {
     var pdAdminSystem = createPdAdminSystem( program )
 
-    if ( program.api == 'close' )
+    if ( program.api == 'actacct' && program.file )
+    {
+        var personalInfo = JSON.parse( fs.readFileSync( program.file ).toString().trim() )
+        personalInfo.reason = 'Activate account.'
+        pd2admin.activateAccount( pdAdminSystem, personalInfo.id, personalInfo, commonResponseHandler )
+    }
+    else if ( program.api == 'closeacct' && program.playerid )
     {
         pd2admin.closeAccount( pdAdminSystem, program.playerid, commonResponseHandler )
     }
@@ -159,7 +167,16 @@ function commonResponseHandler( error, response, body )
         throw new Error( error )
     }
 
-    streamIt( body )
+    if ( response != null && response.statusCode > 204 )
+    {
+        process.exitCode = 1
+        console.error(response.body)
+    }
+    else
+    {
+        if ( program.verbose ) { console.log( response ) }
+        streamIt( body )
+    }
 }
 
 function createPdAdminSystem( program )
