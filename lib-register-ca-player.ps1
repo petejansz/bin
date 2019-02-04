@@ -159,8 +159,13 @@ function isEmailnameAvailable( [string]$hostname, [int]$port, [string]$emailName
     $response = Invoke-WebRequest -uri $uri -Method GET -Headers $header
     ($response.Content -match "true")
 }
-function execRestOauthLogin( [string]$hostname, [int]$port, [string]$username, [string]$password, [boolean]$mobile ) # [string] $authCode
+
+function execRestOauthLogin( [string]$hostname, [int]$port, [string]$username, [string]$password, [boolean]$mobile )
 {
+    <#
+    .OUTPUTS [string] $authCode
+    #>
+
     $resourceOwnerCredentials = New-Object PsObject -Property @{
         USERNAME = $username
         PASSWORD = $password
@@ -228,6 +233,15 @@ function login ( [string]$hostname, [int]$port, [string]$username, [string]$pass
     return $sessionToken
 }
 
+function execRestReqSendActivationMail( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
+{
+    $baseUri = createUriBase $hostname $port
+    $uri = "${baseUri}/api/v2/players/self/activation-mail"
+    $jsonBody = "{}"
+    $header = createAuthHeader $oauthToken $mobile
+    Invoke-WebRequest -uri $uri -Method PUT -Body $jsonBody -Headers $header
+}
+
 function execRestActivateAccount( [string]$hostname, [int]$port, [string] $devxToken, [boolean]$mobile ) # response
 {
     $baseUri = createUriBase $hostname $port
@@ -235,6 +249,15 @@ function execRestActivateAccount( [string]$hostname, [int]$port, [string] $devxT
     $jsonBody = '{}'
     $header = createHeader $mobile
     Invoke-WebRequest -uri $uri -Method POST -Body $jsonBody -Headers $header
+}
+
+function execRestForgottenPassword( [string]$hostname, [int]$port, [string] $username, [boolean]$mobile ) # response
+{
+    $baseUri = createUriBase $hostname $port
+    $uri = "${baseUri}/api/v2/players/forgotten-password"
+    $jsonBody = "{`"emailAddress`": `"$username`"}"
+    $header = createHeader $mobile
+    Invoke-WebRequest -uri $uri -Method PUT -Body $jsonBody -Headers $header
 }
 
 function execRestGetSelf( [string]$hostname, [int]$port, [string]$oauthToken, [string]$pathinfo, [boolean]$mobile  ) # response
@@ -400,33 +423,16 @@ function execCaAdminRestCloseAccount( [string]$hostname, [int]$port, [string]$oa
     }
 }
 
-function activate( [string]$hostname, [int]$port, $player, [string]$xToken, [boolean]$mobile ) # Boolean
+function activate( [string]$hostname, [int]$port, [string]$xToken, [boolean]$mobile ) # Boolean
 {
     $result = $False
-    [int] $activationToken = -1
+    [int] $activationToken = $xToken.Trim()
 
-    if ( $player.PlayerActivationStatus -match "1" )
+    $response = execRestActivateAccount $hostname $port $activationToken $mobile
+    $result = ($response.StatusCode -match "204")
+    if ($result)
     {
-        if ( $xToken )
-        {
-            $activationToken = $xToken.Trim()
-        }
-        else
-        {
-            $activationToken = $player.PlayerID
-        }
-
-        if ($activationToken -lt 0)
-        {
-            return $result
-        }
-
-        $response = execRestActivateAccount $hostname $port $activationToken $mobile
-        $result = ($response.StatusCode -match "204")
-        if ($result)
-        {
-            logPlayer $player ("ACTIVATED; PlayerID=${activationToken}")
-        }
+        logPlayer $activationToken ("ACTIVATED; PlayerID=${activationToken}")
     }
 
     $result

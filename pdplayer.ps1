@@ -5,7 +5,8 @@
 
 param
 (
-    [int]$act,
+    [string]$act,
+    [switch]$resendActivationMail,
     [string]$csvfile,
     [string]$chpwd,
     [string]$newpwd,
@@ -13,8 +14,8 @@ param
     [string]$lock,
     [switch]$mobile,
     [string]$unlock,
-    [string]$USERNAME,
-    [string]$password = "RegTest6100",
+    [string]$username,
+    [string]$password = "Password1",
     [string]$hostname,
     [int]$port = 80,
     [switch]$help,
@@ -22,6 +23,7 @@ param
     [int]$close,
     [string]$reason,
     [string]$emailavailable,
+    [string]$forgotpassword,
     [switch]$getattributes,
     [switch]$getcommprefs,
     [switch]$getpersonalinfo,
@@ -47,10 +49,12 @@ function showHelp()
 {
     Write-Host "USAGE: ${ScriptName} [options] -hostname <hostname> option"
     Write-Host "Options:"
-    Write-Host "  -act <token>  -csvfile <csvfile>      -username <username>"
+    Write-Host "  -act <token>   "
     Write-Host "  -chpwd <oldPassword> -newpwd <newPassword> -username <username>"
     Write-Host "  -close <contractId>                   -username <username> [-reason <reason>]"
-    Write-Host "  -emailavailable <emailname>"
+    Write-Host "  -emailavailable  <emailname>"
+    Write-Host "  -forgotpassword <emailname>"
+    Write-Host "  -resendActivationMail                 -username <username>"
     Write-Host "  -getattributes                        -username <username>"
 
     Write-Host "  -getcommprefs                         -username <username>"
@@ -68,8 +72,8 @@ function showHelp()
     Write-Host "  -logintoken <username>"
     Write-Host "  -lock <reason>                        -username <username>"
     Write-Host "  -mobile"
-    Write-Host "  -password <password default=RegTest6100>"
-    Write-Host "  -port <int default=80>"
+    Write-Host "  -password <password default=${password}>"
+    Write-Host "  -port <int default=${port}>"
     Write-Host "  -reg    <csv-file>                    -username <username> [-show and exit]"
     Write-Host "  -unlock <reason>                      -username <username>"
     Write-Host "  -update <csv-file>                    -username <username> # email pref, lock/unlock"
@@ -91,21 +95,14 @@ try
 
     if ($act)
     {
-        if (-not($csvfile)) {showHelp}
-        if (-not($username)) {showHelp}
-
         try
         {
             $devxToken = $act
-            $players = import-csv $csvfile
-            $player = $players | Where-Object {$_.PlayerEmail -eq $username}
-            $player.PlayerId = $devxToken
-            $result = activate $hostname $port $player $devxToken $mobile
-            $players | export-csv $csvfile -notype -force
+            $result = execRestActivateAccount $hostname $port $devxToken $mobile
         }
         catch
         {
-            logPlayer $player "Activation Exception: xToken = $devxToken"
+            Write-Output "Activation Exception: xToken = $devxToken"
         }
     }
     elseif ($chpwd)
@@ -149,6 +146,18 @@ try
         if (-not($emailavailable)) {showHelp}
         $username = $emailavailable
         isEmailnameAvailable $hostname $port $username $mobile
+    }
+    elseif ($forgotpassword)
+    {
+        if (-not($forgotpassword)) {showHelp}
+        $username = $forgotpassword
+        execRestForgottenPassword $hostname $port $username $mobile
+    }
+    elseif ($resendActivationMail)
+    {
+        if (-not($username)) {showHelp}
+        $token = login $hostname $port $username $password $mobile
+        execRestReqSendActivationMail $hostname $port $token $mobile
     }
     elseif ($getattributes)
     {
