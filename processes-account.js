@@ -10,10 +10,10 @@ var processes = require( modulesPath + 'pete-lib/processes-lib' )
 program
     .version( '0.0.1' )
     .description( 'CLI to pd-crm-processess account (activate or close), add-note' )
-    .usage( ' -<activate|close> -i <playerId> -h <hostname>' )
+    .usage( ' -<activate|close> -i <playerid> -h <hostname>' )
     .option( '--activate', 'Activate account' )
     .option( '--close', 'Close account' )
-    .option( '-i, --playerId <playerId>', 'PlayerID', parseInt )
+    .option( '-i, --playerid <playerid>', 'PlayerID', parseInt )
     .option( '--newpwd [newpwd]', 'New password' )
     .option( '--chpwd <oldPassword>', 'Change password' )
     .option( '-h, --hostname <hostname>', 'Hostname' )
@@ -22,7 +22,7 @@ program
 
 process.exitCode = 1
 
-if ( !program.playerId || !program.hostname || !( program.activate || program.close || program.note || program.chpwd ) )
+if ( !program.playerid || !program.hostname || !( program.activate || program.close || program.note || program.chpwd ) )
 {
     program.help()
 }
@@ -37,12 +37,12 @@ if ( program.activate || program.close )
     if ( program.activate )
     {
         restPath += 'account-activation'
-        request.token = program.playerId
+        request.token = program.playerid
     }
     else
     {
         restPath += 'close-account'
-        request.playerId = program.playerId
+        request.playerid = program.playerid
         request.reason = ': transactionTime: ' + request.transactionTime
     }
 }
@@ -52,7 +52,7 @@ else if ( program.chpwd )
 
     restPath += 'password-change'
     request = processes.createProcessesRequest()
-    request.playerId = program.playerId
+    request.playerid = program.playerid
 
     moreHeaders['x-tx-id'] = request.transactionIdBase
     moreHeaders['x-tx-time'] = request.transactionTime
@@ -64,13 +64,16 @@ else if ( program.note )
 {
     restPath += 'player-note'
     request = processes.createProcessesRequest()
-    request.playerId = program.playerId
+    request.playerid = program.playerid
+
+    moreHeaders['x-tx-id'] = request.transactionIdBase
+    moreHeaders['x-tx-time'] = request.transactionTime
 
     const note =
     {
         alert: false,
         id: null,
-        playerId: request.playerId,
+        playerid: request.playerid,
         status: 1,
         type: 1,
         value: 'Make a note @ ' + new Date(),
@@ -81,7 +84,7 @@ else if ( program.note )
     request.note = note
 }
 
-processes.createAxiosInstance( program.hostname, program.playerId, moreHeaders ).
+processes.createAxiosInstance( program.hostname, program.playerid, moreHeaders ).
     post( restPath, request ).then( function ( response )
     {
         if ( response.data.errorEncountered )
