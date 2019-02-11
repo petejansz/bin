@@ -5,10 +5,12 @@
 
 param
 (
+    [switch]    $broker,
     [switch]    $ca,
     [switch]    $core,
     [switch]    $pdadmin,   # default build only war
     [switch]    $ear,       # also build pdadmin ear
+    [switch]    $ext,
     [switch]    $proc,
     [string]    $caVersion,
     [string]    $caHome,
@@ -39,7 +41,7 @@ $ScriptName = $MyInvocation.MyCommand.Name
 
 function showHelp()
 {
-    Write-Output "USAGE: $ScriptName [option] -core | -pdadmin [-ear] | -proc"
+    Write-Output "USAGE: $ScriptName [option] -broker | -core | -ext | -pdadmin [-ear] | -proc"
     Write-Output "  option"
     Write-Output "    -ca                # Build entire CA"
     Write-Output '    -caVersion <version> default = $env:CA_VERSION'
@@ -57,7 +59,7 @@ function showHelp()
 }
 
 if ($h -or $help) {showHelp}
-if ( -not($core) -and -not($pdadmin) -and -not($proc) -and -not($ca) -and -not($pd2) ) {showHelp}
+if ( -not($core) -and -not($pdadmin) -and -not($proc) -and -not($ca) -and -not($pd2) -and -not($broker) -and -not($ext)) {showHelp}
 if ( -not($build) -and -not($deploy) -and -not($push) -and -not($restart) -and -not($start) -and -not($stop) )
 {showHelp}
 
@@ -213,6 +215,32 @@ function doAdminFrontend()
     }
 }
 
+function doCrmExt()
+{
+    Write-Host "Building crm-ext prov-action-plugins jar ..."
+    Set-Location $env:PD2\components\prov\prov-action-plugins
+    mvn -q -DskipTests clean install | out-null
+    Get-ChildItem -file *.jar -r -path .| %{pscp -pw pilot12 $_.fullname pilot@pdext:/tmp/.}
+
+    Write-Host "Building crm-ext dlv-plugins-essns jar ..."
+    Set-Location $env:PD2\components\dlv\dlv-plugins-essns
+    mvn -q -DskipTests clean install | out-null
+    Get-ChildItem -file *.jar -r -path .| %{pscp -pw pilot12 $_.fullname pilot@pdext:/tmp/.}
+
+    $targetDir = "$caHome/components/bi-adapter/bi-adapter-application/target"
+    #deployArtifact $targetDir "california-pd-backend-bus-app-${caVersion}.ear" "crm-ext"
+    $artifact = "{0}/{1}" -f $targetDir, "california-bi-adapter-app-${caVersion}.ear"
+    pushToDev $artifact "pdext" "/tmp/server/crm-ext/deploy"
+}
+
+function doCrmBroker()
+{
+    $targetDir = "$caHome/components/pd-backend-bus/pd-backend-bus-application/target"
+    #deployArtifact $targetDir "california-pd-backend-bus-app-${caVersion}.ear" "broker"
+    $artifact = "{0}/{1}" -f $targetDir, "california-pd-backend-bus-app-${caVersion}.ear"
+    pushToDev $artifact "pdcore" "/tmp/server/broker/deploy"
+}
+
 function doCrmCore()
 {
     # Member of crm-core/deploy/california-crm-connector-app-2.0.15.0-SNAPSHOT.ear
@@ -239,13 +267,14 @@ function doCrmCore()
 function doPdCrmProcesses()
 {
     # Member of pd-crm-processes/deploy/california-pd-crm-processes-app-2.0.*-SNAPSHOT.ear
-    $componentPaths = @("$pd2Home/components/pd-crm-processes/processes-commons")
+    # $componentPaths = @("$pd2Home/components/pd-crm-processes/processes-commons")
+    $componentPaths = @("$pd2Home/components/pd-crm-processes")
     # $componentPaths += "$pd2Home/components/pd-crm-processes/processor-core"
     # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/closeaccount-process"
-    $componentPaths += "$pd2Home/components/pd-crm-processes/processes/updateprofile-process"
+    # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/updateprofile-process"
 
-    $componentPaths += "$caHome/components/pd-crm-processes/ca-processes"
-    $componentPaths += "$caHome/components/pd-crm-processes/pd-crm-processes-camel-context"
+    # $componentPaths += "$caHome/components/pd-crm-processes/ca-processes"
+    # $componentPaths += "$caHome/components/pd-crm-processes/pd-crm-processes-camel-context"
     $componentPaths += "$caHome/components/pd-crm-processes"
 
     # $componentPaths += "$caHome/components/batch"
@@ -278,7 +307,9 @@ if ($ca)
     mvn -DskipTests clean install
 }
 
+if ($broker) {doCrmBroker}
 if ($core) {doCrmCore}
+if ($ext)  {doCrmExt}
 if ($proc) {doPdCrmProcesses}
 if ($pdadmin) {doAdminFrontend}
 if ($restart -or $stop -or $start) {manageServers}
