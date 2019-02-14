@@ -233,6 +233,10 @@ function login ( [string]$hostname, [int]$port, [string]$username, [string]$pass
     return $sessionToken
 }
 
+function doPutPost([string]$uri, [string]$method, [string]$jsonBody, [object]$header)
+{
+    Invoke-WebRequest -uri $uri -Method $method -Body $jsonBody -Headers $header
+}
 function execRestReqSendActivationMail( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
 {
     $baseUri = createUriBase $hostname $port
@@ -257,7 +261,7 @@ function execRestForgottenPassword( [string]$hostname, [int]$port, [string] $use
     $uri = "${baseUri}/api/v2/players/forgotten-password"
     $jsonBody = "{`"emailAddress`": `"$username`"}"
     $header = createHeader $mobile
-    Invoke-WebRequest -uri $uri -Method PUT -Body $jsonBody -Headers $header
+    doPutPost $uri "PUT" $jsonBody $header
 }
 
 function execRestGetSelf( [string]$hostname, [int]$port, [string]$oauthToken, [string]$pathinfo, [boolean]$mobile  ) # response
@@ -374,48 +378,6 @@ function execRestRegisterUser( [string]$hostname, [int]$port, [string] $jsonBody
     try
     {
         return Invoke-WebRequest -uri $uri -Method POST -Body $jsonBody -Headers $header
-    }
-    catch
-    {
-        throw
-    }
-}
-
-<#
-.SYNOPSIS
-Close account
-
-.PARAMETER hostname
-A pd2-admin-rest host
-
-.PARAMETER port
-A pd2-admin-rest container, e.g, port 8280 or mine 8380
-
-.PARAMETER playerEmail
-Player email(username)
-
-.PARAMETER reason
-Why?
-
-#>
-function execCaAdminRestCloseAccount( [string]$hostname, [int]$port, [string]$oauthToken, [int]$contractId, [string]$reason, [boolean]$mobile ) # response
-{
-    $baseUri = createUriBase $hostname $port
-    $uri = "${baseUri}/california-admin-rest/api/v1/admin/players/${contractId}/closeaccount"
-
-    $header = createAuthHeader $oauthToken $mobile
-    if (-not($reason)) {$reason = "Default reason."}
-
-    $body = New-Object PsObject -Property @{
-        contractId = $contractId
-        reason     = $reason
-    }
-
-    $body = $body | ConvertTo-Json
-
-    try
-    {
-        return Invoke-WebRequest -uri $uri -Method PUT -Body $body -Headers $header
     }
     catch
     {

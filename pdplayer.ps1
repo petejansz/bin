@@ -15,12 +15,13 @@ param
     [switch]$mobile,
     [string]$unlock,
     [string]$username,
+    [string]$u,
     [string]$password = "Password1",
+    [string]$p = "Password1",
     [string]$hostname,
+    [string]$h,
     [int]$port = 80,
     [switch]$help,
-    [switch]$h,
-    [int]$close,
     [string]$reason,
     [string]$emailavailable,
     [string]$forgotpassword,
@@ -47,12 +48,11 @@ $scriptDir = Split-Path $MyInvocation.MyCommand.Path
 
 function showHelp()
 {
-    Write-Host "USAGE: ${ScriptName} [options] -hostname <hostname> option"
+    Write-Host "USAGE: ${ScriptName} [options] -h[ostname] <hostname> option"
     Write-Host "Options:"
     Write-Host "  -act <token>   "
     Write-Host "  -chpwd <oldPassword> -newpwd <newPassword> -username <username>"
-    Write-Host "  -close <contractId>                   -username <username> [-reason <reason>]"
-    Write-Host "  -emailavailable  <emailname>"
+    Write-Host "  -emailavailable <emailname>"
     Write-Host "  -forgotpassword <emailname>"
     Write-Host "  -resendActivationMail                 -username <username>"
     Write-Host "  -getattributes                        -username <username>"
@@ -80,14 +80,18 @@ function showHelp()
     exit 1
 }
 
-if ($h -or $help) {showHelp}
-if (-not($hostname)) {showHelp}
+if ($help) {showHelp}
+if (-not ($h -or $hostname)) {showHelp}
 
 . lib-register-ca-player.ps1
 
 $response = $null
 try
 {
+    if ($h) {$hostname = $h}
+    if ($p) {$password = $p}
+    if ($u) {$username = $u}
+
     if ($hostname -match "mobile")
     {
         $mobile = $true
@@ -114,14 +118,6 @@ try
         $password = $oldPassword
         $token = login $hostname $port $username $password $mobile
         execRestChangePassword $hostname $port $token $body $mobile #| Out-Null
-    }
-    elseif ($close)
-    {
-        $playerId = $close
-        if (-not($username)) {showHelp}
-        $token = login $hostname $port $username $password $mobile
-        if (-not($reason)) {$reason = $scriptName + " REASON"}
-        execCaAdminRestCloseAccount "pdadmin" 8280 $token $playerId $reason $mobile
     }
     elseif ($lock)
     {
