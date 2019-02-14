@@ -34,7 +34,7 @@ function showHelp()
 if ($h -or $help) {showHelp}
 if ( -not($start) -and -not($stop) ) {showHelp}
 
-API_SERVER_HOME = "$env:USERPROFILE/Documents/Projects/learning/nodejs/api-server"
+$API_SERVER_HOME = "$env:USERPROFILE/Documents/Projects/learning/nodejs/api-server"
 $serverListening = Test-NetConnection -InformationLevel quiet -Port 8680 -ComputerName localhost -WarningAction silentlyContinue
 
 if ($start)
