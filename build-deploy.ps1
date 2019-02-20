@@ -96,27 +96,63 @@ class ServerClass
     [string] $shortname
     [string] $startFilename
     [string] $mainWindowTitle
+    [int] $port
 
     ServerClass([string] $shortname, [string] $startFilename, [string] $mainWindowTitle)
     {
         $this.shortname = $shortname
         $this.startFilename = $startFilename
         $this.mainWindowTitle = $mainWindowTitle
+        $this.port = $this.mainWindowTitle.split()[0].split(':')[1]
+    }
+
+    isRunning()
+    {
+        Test-NetConnection -InformationLevel quiet -Port $this.port -ComputerName localhost -WarningAction silentlyContinue
     }
 
     stop()
     {
         try
         {
-            closewindow.exe $this.mainWindowTitle 2>$null
+            $pid = ((netstat -ano | grep $this.port) -replace "  ", '').split()[2]
+            Write-Warning $pid
+            stop-process -force -id $pid
         }
         catch {}
     }
 
     start()
     {
-        $this.stop
-        Start-process -FilePath $this.startFilename
+        if ( -not (Test-NetConnection -InformationLevel quiet -Port $this.port -ComputerName localhost -WarningAction silentlyContinue ))
+        {
+            Start-process -PassThru -FilePath $this.startFilename
+        }
+    }
+}
+
+function manageServers()
+{
+    $coreServer = [ServerClass]::new('core', 'jboss_init_crm-core.bat', 'crm-core:8280 - run.bat -b 0.0.0.0 -c crm-core')
+    $pdadminServer = [ServerClass]::new('pdadmin', 'jboss_init_pd2-admin-rest.bat', 'pd2-admin-rest:8380 - run.bat -b 0.0.0.0 -c pd2-admin-rest')
+    $procServer = [ServerClass]::new('proc', 'jboss_init_pd-crm-processes.bat', 'pd-crm-processes:8180 - run.bat -b 0.0.0.0 -c pd-crm-processes')
+
+    if ($core)
+    {
+        if ($stop ) {$coreServer.stop()}
+        if ($start -or $restart) {$coreServer.start()}
+    }
+
+    if ($proc)
+    {
+        if ($stop ) {$procServer.stop()}
+        if ($start -or $restart) {$procServer.start()}
+    }
+
+    if ($pdadmin)
+    {
+        if ($stop ) {$pdadminServer.stop()}
+        if ($start -or $restart) {$pdadminServer.start()}
     }
 }
 
@@ -146,30 +182,6 @@ function pushToDev([string]$artifact, [string]$hostname, [string]$targetDir)
 }
 
 
-function manageServers()
-{
-    $coreServer = [ServerClass]::new('core', 'jboss_init_crm-core.bat', 'crm-core:8280 - run.bat   -b 0.0.0.0 -c crm-core')
-    $pdadminServer = [ServerClass]::new('pdadmin', 'jboss_init_pd2-admin-rest.bat', 'pd2-admin-rest:8380 - run.bat   -b 0.0.0.0 -c pd2-admin-rest')
-    $procServer = [ServerClass]::new('proc', 'jboss_init_pd-crm-processes.bat', 'pd-crm-processes:8180 - run.bat   -b 0.0.0.0 -c pd-crm-processes')
-
-    if ($core)
-    {
-        if ($stop ) {$coreServer.stop()}
-        if ($start -or $restart) {$coreServer.start()}
-    }
-
-    if ($proc)
-    {
-        if ($stop ) {$procServer.stop()}
-        if ($start -or $restart) {$procServer.start()}
-    }
-
-    if ($pdadmin)
-    {
-        if ($stop ) {$pdadminServer.stop()}
-        if ($start -or $restart) {$pdadminServer.start()}
-    }
-}
 function build( $componentPaths )
 {
     if ($build)
