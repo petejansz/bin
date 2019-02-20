@@ -14,7 +14,8 @@ program
     .usage( ' ARGS' )
     .option( '--csvfile <csvfile>', 'CSV file of player IDs' )
     .option( '--sqlt <sqlt>', 'SQL template file' )
-    .option( '--pid', 'Print playerIDs' )
+    .option( '--from <from>', '' )
+    .option( '--to <to>', '' )
     .option( '--of [outputfile]', 'Write SQL to output file' )
     .parse( process.argv )
 
@@ -22,47 +23,25 @@ process.exitCode = 1
 
 if ( !program.csvfile || !program.sqlt )
 {
-    process.exit()
+    program.help()
 }
 
-var data = fs.readFileSync( program.csvfile )
-var records = csvParser( data, { columns: true } )
-var sqlt = require( path.resolve( program.sqlt ) )
+var playerIdList = fs.readFileSync( program.csvfile ).toString().trim().split( '\n' )
+var sqlt = fs.readFileSync( program.sqlt ).toString().trim()
 
-var playerIdList = []
-
-for ( var i = 0; i < records.length; i++ )
-{
-    var record = records[i]
-    var playerID = record.PlayerID
-
-    if ( program.pid )
-    {
-        console.log( playerID )
-    }
-
-    playerIdList.push( playerID )
-}
-
-if ( program.pid )
-{
-    process.exitCode = 0
-    process.exit()
-}
-
-generateSql( playerIdList, sqlt, sqlt.statements )
+generateSql( playerIdList, sqlt )
 process.exitCode = 0
 ///////////////////////////////////////////////////////////////////////////////
 
-function generateSql( playerIdList, sqlt, statments )
+function generateSql( playerIdList, sqlt )
 {
-    console.log( util.format( "-- Generated: %s", new Date() ) )
-    console.log( "-- " + sqlt.description + "\n" )
+    // console.log( util.format( "-- Generated: %s", new Date() ) )
+    // console.log( "-- " + sqlt.description + "\n" )
 
-    var sqlStatementTemplate = statments.join( "\n\n" )
-
-    for ( i = 0; i < playerIdList.length; i++ )
+    for ( i = (program.from - 1); i < playerIdList.length; i++ )
     {
+        if (i > program.to) {break}
+
         var playerId = playerIdList[i].trim()
 
         if ( isNaN( playerId ) )
@@ -70,10 +49,11 @@ function generateSql( playerIdList, sqlt, statments )
             continue
         }
 
-        var sqlCode = sqlStatementTemplate
+        var sqlCode = sqlt
         sqlCode = sqlCode.replace( /\?/g, playerId ) + "\n\ncommit;\n"
 
-        console.log( sqlCode )
+        //console.log( i+1 + ' / ' + playerIdList.length )
+        fs.writeFileSync( playerId + '.sql', sqlCode )
     }
 }
 
