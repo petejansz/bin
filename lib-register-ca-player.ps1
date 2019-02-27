@@ -3,7 +3,7 @@
 #>
 
 . lib-general.ps1
-
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $CA_SITE_ID = '35'
 $MOBILE_CLIENT_ID = "CAMOBILEAPP"
 $PWS_CLIENT_ID = 'SolSet2ndChancePortal'
@@ -24,16 +24,16 @@ function createHeader( [boolean]$mobile )
         $clientId = $MOBILE_CLIENT_ID
     }
 
-    $header = @{                                `
-            'Content-Type'   = 'application/json'    ; `
+    $header = @{                                       `
             'cache-control'  = 'no-cache'            ; `
+            'content-type'   = 'application/json'    ; `
+            'x-site-id'      = $SiteId               ; `
             'x-ex-system-id' = $SystemId             ; `
             'x-channel-id'   = $channel              ; `
-            'x-site-id'      = $SiteId               ; `
             'x-client-id'    = $clientId             ; `
-            'X-CLIENTIP'     = (get-ipv4InetAddress)    ; `
-            'X-ESA-API-KEY'  = 'di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b'  ; `
-            'X-DEVICE-UUID'  = ('UUID-' + (get-ipv4InetAddress) ); `
+            'x-clientip'     = (get-ipv4InetAddress) ; `
+            'x-esa-api-key'  = 'di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b' ; `
+            'x-device-uuid'  = ('UUID-' + (get-ipv4InetAddress) ); `
     }
 
     return $header
@@ -43,16 +43,16 @@ function createAuthHeader( [string]$oauthToken, [boolean]$mobile ) # @map
     $channel = $PWS_CHANNEL_ID
     if ($mobile) {$channel = $MOBILE_CHANNEL_ID}
 
-    $authHeader = @{                                   `
-            'Content-Type'   = 'application/json'       ; `
-            'authorization'  = ("OAuth " + $oauthToken) ; `
+    $authHeader = @{                                      `
             'cache-control'  = 'no-cache'               ; `
+            'content-type'   = 'application/json'       ; `
+            'authorization'  = ("OAuth " + $oauthToken) ; `
+            'x-site-id'      = $SiteId                  ; `
             'x-ex-system-id' = $SystemId                ; `
             'x-channel-id'   = $channel                 ; `
-            'x-site-id'      = $SiteId                  ; `
-            'X-CLIENTIP'     = (get-ipv4InetAddress)    ; `
-            'X-ESA-API-KEY'  = "di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b"   ; `
-            'X-DEVICE-UUID'  = ('UUID-' + (get-ipv4InetAddress));`
+            'x-clientip'     = (get-ipv4InetAddress)    ; `
+            'x-esa-api-key'  = "di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b"; `
+            'x-device-uuid'  = ('UUID-' + (get-ipv4InetAddress));`
     }
 
     return $authHeader
