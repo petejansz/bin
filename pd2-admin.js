@@ -29,7 +29,7 @@ description += '  --api SEARCH/UPDATES:\n'
 description += '        actacct  <pers-info-file> --playerid <playerId> # Activate account\n'
 description += '        closeacct                 --playerid <playerId> # Close account\n'
 description += '        mknote                    --playerid <playerId>\n'
-description += '        search-players --<city|state|zipcode|email|firstname|lastname>\n'
+description += '        search   --<city|state|zipcode|email|firstname|lastname>\n'
 description += '        services --activate | --suspend --serviceids sid,sid --playerid <playerId>\n'
 
 program
