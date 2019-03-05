@@ -11,7 +11,7 @@ HELP=false
 function help()
 {
   echo "Perform, in-place edit of old regex with new regex"                                >&2
-  echo "File is backuped to filename.long-time"                                            >&2
+  echo "File is backed up to filename.long-time"                                            >&2
   echo "USAGE: $(basename $0) [options] --file <filename> --old 'regex' --new 'regex'"     >&2
   echo "  options"                                                                         >&2
   echo "  -f | --file     <filename>"                                                      >&2
