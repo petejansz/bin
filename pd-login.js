@@ -25,8 +25,14 @@ if ( !program.hostname && !program.username || !program.password )
     program.help()
 }
 
-var oauthAxiosInstance = createAxiosInstance( program.hostname )
-loginForOAuthToken( oauthAxiosInstance, program.hostname, program.username, program.password, getOAuthCodeResponseHandler )
+var qualifiedHostname = program.hostname
+if ( qualifiedHostname.match( /cadev1$/i ) )
+{
+    qualifiedHostname += '.gtech.com'
+}
+
+var oauthAxiosInstance = createAxiosInstance( qualifiedHostname )
+loginForOAuthToken( oauthAxiosInstance, qualifiedHostname, program.username, program.password, getOAuthCodeResponseHandler )
 
 async function loginForOAuthToken( oauthAxiosInstance, host, username, password )
 {
@@ -44,7 +50,7 @@ async function loginForOAuthToken( oauthAxiosInstance, host, username, password 
 function getOAuthCodeResponseHandler( response )
 {
     var oAuthCode = response.data[0].authCode
-    getLoginToken( oauthAxiosInstance, oAuthCode, program.hostname )
+    getLoginToken( oauthAxiosInstance, oAuthCode, qualifiedHostname )
 }
 
 function getLoginToken( oauthAxiosInstance, oAuthCode, hostname )
@@ -60,7 +66,18 @@ function getLoginToken( oauthAxiosInstance, oAuthCode, hostname )
 
 function getOAuthLoginTokenResponseHandler( response )
 {
-    str_to_stream( response.data[1].token ).pipe( process.stdout )
+    var index
+
+    if ( response.config.baseURL.match( /mobile/i ) )
+    {
+        index = 0
+    }
+    else
+    {
+        index = 1
+    }
+
+    str_to_stream( response.data[index].token ).pipe( process.stdout )
     process.exitCode = 0
 }
 
