@@ -13,12 +13,12 @@ $PWS_CHANNEL_ID = '2'
 $SystemId = '8'
 $SiteId = $CA_SITE_ID
 
-function createHeader( [boolean]$mobile )
+function createHeader( [string]$hostname )
 {
     $channel = $PWS_CHANNEL_ID
     $clientId = $PWS_CLIENT_ID
 
-    if ($mobile)
+    if ($hostname -match "mobile")
     {
         $channel = $MOBILE_CHANNEL_ID
         $clientId = $MOBILE_CLIENT_ID
@@ -38,10 +38,11 @@ function createHeader( [boolean]$mobile )
 
     return $header
 }
-function createAuthHeader( [string]$oauthToken, [boolean]$mobile ) # @map
+function createAuthHeader( [string]$oauthToken, [string]$hostname ) # @map
 {
     $channel = $PWS_CHANNEL_ID
-    if ($mobile) {$channel = $MOBILE_CHANNEL_ID}
+    if ($hostname -match "mobile")
+    {$channel = $MOBILE_CHANNEL_ID}
 
     $authHeader = @{                                      `
             'cache-control'  = 'no-cache'               ; `
@@ -142,6 +143,11 @@ function createUriBase( [string]$hostname, [int]$port )
         $proto = "http"
     }
 
+    if ($hostname -notmatch "com$")
+    {
+        $hostname += '.gtech.com'
+    }
+
     $uriBase = "{0}://{1}" -f $proto, $hostname
 
     if ($proto -eq "http" -and $port -gt 8000)
@@ -152,15 +158,16 @@ function createUriBase( [string]$hostname, [int]$port )
     return $uriBase
 }
 
-function isEmailnameAvailable( [string]$hostname, [int]$port, [string]$emailName, [boolean]$mobile ) # boolean
+function isEmailnameAvailable( [string]$hostname, [int]$port, [string]$emailName ) # boolean
 {
-    $uri = "http://${hostname}/api/v1/players/available/${emailName}"
-    $header = createHeader $mobile
+    $baseUri = createUriBase $hostname $port
+    $uri = "${baseUri}/api/v1/players/available/${emailName}"
+    $header = createHeader $hostname
     $response = Invoke-WebRequest -uri $uri -Method GET -Headers $header
     ($response.Content -match "true")
 }
 
-function execRestOauthLogin( [string]$hostname, [int]$port, [string]$username, [string]$password, [boolean]$mobile )
+function execRestOauthLogin( [string]$hostname, [int]$port, [string]$username, [string]$password )
 {
     <#
     .OUTPUTS [string] $authCode
@@ -177,12 +184,12 @@ function execRestOauthLogin( [string]$hostname, [int]$port, [string]$username, [
         resourceOwnerCredentials = $resourceOwnerCredentials
     }
 
-    if ($mobile)
+    $header = createHeader $hostname
+
+    if ($hostname -match "mobile")
     {
         $body.clientId = $MOBILE_CLIENT_ID
     }
-
-    $header = createHeader $mobile
 
     $body = $body | ConvertTo-Json -depth 3
     $baseUri = createUriBase $hostname $port
@@ -191,7 +198,7 @@ function execRestOauthLogin( [string]$hostname, [int]$port, [string]$username, [
     return ($resp.content | ConvertFrom-Json).authcode
 }
 
-function execOAuthTokens ( [string]$hostname, [int]$port, [string]$authCode, [boolean]$mobile ) # [string] $token
+function execOAuthTokens ( [string]$hostname, [int]$port, [string]$authCode ) # [string] $token
 {
     $body = New-Object PsObject -Property @{
         authCode = $authCode
@@ -199,12 +206,12 @@ function execOAuthTokens ( [string]$hostname, [int]$port, [string]$authCode, [bo
         siteId   = $SiteId
     }
 
-    if ($mobile)
+    if ($hostname -match "mobile")
     {
         $body.clientId = $MOBILE_CLIENT_ID
     }
 
-    $header = createHeader $mobile
+    $header = createHeader $hostname
 
     $body = $body | ConvertTo-Json
 
@@ -214,7 +221,7 @@ function execOAuthTokens ( [string]$hostname, [int]$port, [string]$authCode, [bo
     $mobileToken = ($resp.content | ConvertFrom-Json).token[0]
     $pwsToken = ($resp.content | ConvertFrom-Json).token[1]
 
-    if ($mobile)
+    if ($hostname -match "mobile")
     {
         $token = $mobileToken
     }
@@ -226,10 +233,10 @@ function execOAuthTokens ( [string]$hostname, [int]$port, [string]$authCode, [bo
     return $token
 }
 
-function login ( [string]$hostname, [int]$port, [string]$username, [string]$password, [boolean]$mobile ) # [string]$sessionToken
+function login ( [string]$hostname, [int]$port, [string]$username, [string]$password ) # [string]$sessionToken
 {
-    $authCode = execRestOauthLogin $hostname $port $username $password $mobile
-    $sessionToken = execOAuthTokens $hostname $port $authCode $mobile
+    $authCode = execRestOauthLogin $hostname $port $username $password
+    $sessionToken = execOAuthTokens $hostname $port $authCode
     return $sessionToken
 }
 
@@ -237,53 +244,53 @@ function doPutPost([string]$uri, [string]$method, [string]$jsonBody, [object]$he
 {
     Invoke-WebRequest -uri $uri -Method $method -Body $jsonBody -Headers $header
 }
-function execRestReqSendActivationMail( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
+function execRestReqSendActivationMail( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players/self/activation-mail"
     $jsonBody = "{}"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
     Invoke-WebRequest -uri $uri -Method PUT -Body $jsonBody -Headers $header
 }
 
-function execRestActivateAccount( [string]$hostname, [int]$port, [string] $devxToken, [boolean]$mobile ) # response
+function execRestActivateAccount( [string]$hostname, [int]$port, [string] $devxToken ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players/activate-account/$devxToken"
     $jsonBody = '{}'
-    $header = createHeader $mobile
+    $header = createHeader $hostname
     Invoke-WebRequest -uri $uri -Method POST -Body $jsonBody -Headers $header
 }
 
-function execRestForgottenPassword( [string]$hostname, [int]$port, [string] $username, [boolean]$mobile ) # response
+function execRestForgottenPassword( [string]$hostname, [int]$port, [string] $username ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players/forgotten-password"
     $jsonBody = "{`"emailAddress`": `"$username`"}"
-    $header = createHeader $mobile
+    $header = createHeader $hostname
     doPutPost $uri "PUT" $jsonBody $header
 }
 
-function execRestGetSelf( [string]$hostname, [int]$port, [string]$oauthToken, [string]$pathinfo, [boolean]$mobile  ) # response
+function execRestGetSelf( [string]$hostname, [int]$port, [string]$oauthToken, [string]$pathinfo  ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/self/${pathinfo}"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
 
     Invoke-WebRequest -uri $uri -Method GET -Headers $header
 }
 
-function execRestGetPersonalInfo( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
+function execRestGetPersonalInfo( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {
     $pathinfo = "personal-info"
-    return execRestGetSelf $hostname $port $oauthToken $pathinfo $mobile
+    return execRestGetSelf $hostname $port $oauthToken $pathinfo
 }
 
-function execRestChangePassword( [string]$hostname, [int]$port, [string]$oauthToken, [string]$jsonBody, [boolean]$mobile  ) # response
+function execRestChangePassword( [string]$hostname, [int]$port, [string]$oauthToken, [string]$jsonBody  ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players/self/password"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
 
     try
     {
@@ -295,11 +302,11 @@ function execRestChangePassword( [string]$hostname, [int]$port, [string]$oauthTo
     }
 }
 
-function execRestUpdatePersonalInfo( [string]$hostname, [int]$port, [string]$oauthToken, [string]$jsonBody, [boolean]$mobile ) # response
+function execRestUpdatePersonalInfo( [string]$hostname, [int]$port, [string]$oauthToken, [string]$jsonBody ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/self/personal-info"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
 
     try
     {
@@ -310,53 +317,53 @@ function execRestUpdatePersonalInfo( [string]$hostname, [int]$port, [string]$oau
         throw
     }
 }
-function execRestGetAttributes( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
+function execRestGetAttributes( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {
     $pathinfo = "attributes"
-    return execRestGetSelf $hostname $port $oauthToken $pathinfo $mobile
+    return execRestGetSelf $hostname $port $oauthToken $pathinfo
 }
-function execRestGetComPrefs( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
+function execRestGetComPrefs( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {
     $pathinfo = "communication-preferences"
-    return execRestGetSelf $hostname $port $oauthToken $pathinfo $mobile
+    return execRestGetSelf $hostname $port $oauthToken $pathinfo
 }
-function execRestUpdateComPrefs( [string]$hostname, [int]$port, [string] $oauthToken, [string]$jsonBody, [boolean]$mobile ) # response
+function execRestUpdateComPrefs( [string]$hostname, [int]$port, [string] $oauthToken, [string]$jsonBody ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/self/communication-preferences"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
 
     Invoke-WebRequest -uri $uri -Method PUT -Body $jsonBody -Headers $header
 }
-function execRestGetNotificationsPrefs( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
+function execRestGetNotificationsPrefs( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {
     $pathinfo = "notifications-preferences"
-    return execRestGetSelf $hostname $port $oauthToken $pathinfo $mobile
+    return execRestGetSelf $hostname $port $oauthToken $pathinfo
 }
-function execRestUpdateNotificationsPrefs( [string]$hostname, [int]$port, [string] $oauthToken, [string]$jsonBody, [boolean]$mobile  ) # response
+function execRestUpdateNotificationsPrefs( [string]$hostname, [int]$port, [string] $oauthToken, [string]$jsonBody  ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/self/notifications-preferences"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
 
     Invoke-WebRequest -uri $uri -Method PUT -Body $jsonBody -Headers $header
 }
 
-function execRestGetProfile( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$mobile ) # response
+function execRestGetProfile( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {
     $pathinfo = "profile"
-    return execRestGetSelf $hostname $port $oauthToken $pathinfo $mobile
+    return execRestGetSelf $hostname $port $oauthToken $pathinfo
 }
-function execRestUpdateProfile( [string]$hostname, [int]$port, [string] $oauthToken, [string]$jsonBody, [boolean]$mobile ) # response
+function execRestUpdateProfile( [string]$hostname, [int]$port, [string] $oauthToken, [string]$jsonBody ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/self/profile"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
 
     Invoke-WebRequest -uri $uri -Method PUT -Body $jsonBody -Headers $header
 }
 
-function execRestLockService( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$lock, [string]$reason, [boolean]$mobile ) # $response
+function execRestLockService( [string]$hostname, [int]$port, [string]$oauthToken, [boolean]$lock, [string]$reason ) # $response
 {
     $bodyTemplate = '{"lockPlayer" : "LOCK_VALUE", "reason" : "REASON_VALUE"}'
 
@@ -365,15 +372,15 @@ function execRestLockService( [string]$hostname, [int]$port, [string]$oauthToken
 
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/self/lock-service"
-    $header = createAuthHeader $oauthToken $mobile
+    $header = createAuthHeader $oauthToken $hostname
 
     Invoke-WebRequest -uri $uri -Method PUT -Body $body -Headers $header
 }
-function execRestRegisterUser( [string]$hostname, [int]$port, [string] $jsonBody, [boolean]$mobile ) # response
+function execRestRegisterUser( [string]$hostname, [int]$port, [string] $jsonBody ) # response
 {
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players"
-    $header = createHeader $mobile
+    $header = createHeader $hostname
 
     try
     {
@@ -385,12 +392,12 @@ function execRestRegisterUser( [string]$hostname, [int]$port, [string] $jsonBody
     }
 }
 
-function activate( [string]$hostname, [int]$port, [string]$xToken, [boolean]$mobile ) # Boolean
+function activate( [string]$hostname, [int]$port, [string]$xToken ) # Boolean
 {
     $result = $False
     [int] $activationToken = $xToken.Trim()
 
-    $response = execRestActivateAccount $hostname $port $activationToken $mobile
+    $response = execRestActivateAccount $hostname $port $activationToken
     $result = ($response.StatusCode -match "204")
     if ($result)
     {
@@ -400,14 +407,14 @@ function activate( [string]$hostname, [int]$port, [string]$xToken, [boolean]$mob
     $result
 }
 
-function update( $hostname, $port, $player, [string] $password, [boolean]$mobile )
+function update( $hostname, $port, $player, [string] $password )
 {
     $token = $null
     $updatePerformed = $False
 
     try
     {
-        $token = login $hostname $port $player.PlayerEmail $password $mobile
+        $token = login $hostname $port $player.PlayerEmail $password
     }
     catch [Exception]
     {
@@ -419,7 +426,7 @@ function update( $hostname, $port, $player, [string] $password, [boolean]$mobile
     if ( $player.PlayerPortalStatusID -eq 3 -or $player.PlayerSecondChanceServiceID -eq 3 )
     {
         $reason = 'PlayerPortalStatusID == 3 or PlayerSecondChanceServiceID == 3'
-        $response = execRestLockService $hostname $port $token $true $reason $mobile
+        $response = execRestLockService $hostname $port $token $true $reason
         logPlayer $player "ACCOUNT_LOCKED"
         $updatePerformed = $True
     }
@@ -427,14 +434,14 @@ function update( $hostname, $port, $player, [string] $password, [boolean]$mobile
     # Update emailFormat?
     if ( $player.PlayerPreferredEmailFormat -match "plain" )
     {
-        $jsonResponse = execRestGetComPrefs $hostname $port $token $mobile
+        $jsonResponse = execRestGetComPrefs $hostname $port $token
         $commPrefs = $jsonResponse.content | ConvertFrom-Json
 
         # Change to something else:
         $commPrefs.emailFormat = 'TEXT'
         $jsonBody = $commPrefs | ConvertTo-Json
-        $jsonResponse = execRestUpdateComPrefs $hostname $port $token $jsonBody $mobile
-        $jsonResponse = execRestGetComPrefs $hostname $port $token $mobile
+        $jsonResponse = execRestUpdateComPrefs $hostname $port $token $jsonBody
+        $jsonResponse = execRestGetComPrefs $hostname $port $token
         $commPrefs = $jsonResponse.content | ConvertFrom-Json
         logPlayer $player "EMAIL_FMT set to TEXT"
 
