@@ -7,15 +7,17 @@
 const modulesPath = '/usr/share/node_modules/'
 const util = require( 'util' )
 var program = require( modulesPath + 'commander' )
+var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
+
 const REQUIREMENTS_GRAMMER = '<state>-<envType>-<function>[-appType(default=pws)]'
 
 program
     .version( '0.0.1' )
-    .description( 'Env aliaser' )
+    .description( 'Env aliaser - lookup proto://hostname[:port] by alias' )
     .usage( '--alias <alias> | --ls' )
     .option( '-a, --alias <alias>', 'Alias format: ' + REQUIREMENTS_GRAMMER )
     .option( '-f, --envfile <envfile> default=envar ENVIRONMENTS_JSON', 'Environments json file' )
-    .option( '-h, --hostname', 'Hostname only, no proto' )
+    .option( '-p, --proto', 'Returns proto://hostname[:port]' )
     .option( '-l, --list', 'List' )
     .parse( process.argv )
 
@@ -43,15 +45,18 @@ else
 
 if ( program.list )
 {
-    for ( var i in environments )
+    var sortedEnv = environments.sort( peteUtil.compareValues( 'state', 'asc' ) )
+
+    for ( var i in sortedEnv )
     {
-        var env = environments[i]
+        var env = sortedEnv[i]
+        var hostname = env.port ? ( env.hostname + ':' + env.port ) : env.hostname
         var formmatted = util.format( '%s %s %s %s %s',
             env.state,
             env.envType.toString().padStart( 4 ),
             env.function.toString().padStart( 4 ),
             env.proto.toString().padStart( 5 ),
-            env.hostname,
+            hostname,
         )
         console.log( formmatted )
     }
@@ -66,13 +71,13 @@ else if ( Object.getPrototypeOf( program.alias ) === String.prototype )
     for ( var i in envs )
     {
         var env = envs[i]
-        if ( program.hostname )
+        if ( program.proto )
         {
-            console.log( env.hostname )
+            console.log( protoHost( env ) )
         }
         else
         {
-            console.log( protoHost( env ) )
+            console.log( env.hostname )
         }
     }
 
@@ -115,7 +120,8 @@ function matchByProperties( alias )
 
 function protoHost( env )
 {
-    return env.proto + '://' + env.hostname
+    var hostname = env.port ? ( env.hostname + ':' + env.port ) : env.hostname
+    return env.proto + '://' + hostname
 }
 
 function createAlias( aliasName )
