@@ -45,11 +45,11 @@ else
 
 if ( program.list )
 {
-    var sortedEnv = environments.sort( peteUtil.compareValues( 'state', 'asc' ) )
+    environments.sort( peteUtil.fieldSorter( ['state', 'envType', 'function'] ) )
 
-    for ( var i in sortedEnv )
+    for ( var i in environments )
     {
-        var env = sortedEnv[i]
+        var env = environments[i]
         var hostname = env.port ? ( env.hostname + ':' + env.port ) : env.hostname
         var formmatted = util.format( '%s %s %s %s %s',
             env.state,
