@@ -4,7 +4,25 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "pd2-admin.js",
+            "program": "${workspaceFolder}/pd-winner-notification.js",
+            "args": [
+                "--host", "cat2", "--api", "mknote", "--playerid", "1000002400"
+            ]
+        },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "esa-perf-monitor-report.js",
+        "program": "${workspaceFolder}/esa-perf-monitor-report.js",
+        "args": [
+            "--sort-desc", "avgResponseTimeMs",
+            "--stdout", "--infile", "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/environments/prod/perf/cappapp1-esa-monitor-ALL-ALL.log", "--outcsv", "cappapp1.csv"
+        ]
+    },
     {
         "type": "PowerShell",
         "request": "launch",
@@ -22,8 +40,7 @@
             "name": "pd-login.js",
             "program": "${workspaceFolder}/pd-login.js",
             "args": [
-                "-h", "mobile-cadev1",
-                "-u", "test22@yopmail.com", "-p", "RegTest6100"
+                "-h", "mobile-cadev1", "-u", "mansir@mailinator.com", "-p", "Password1"
             ],
             "cwd": "${workspaceFolder}"
         },
