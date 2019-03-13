@@ -54,8 +54,8 @@ if ( program.list )
         var formmatted = util.format( '%s %s %s %s %s',
             env.state,
             env.envType.toString().padStart( 4 ),
-            env.function.toString().padStart( 4 ),
-            env.proto.toString().padStart( 5 ),
+            env.function.toString().padStart( 7 ),
+            env.proto.toString().padStart( 6 ),
             hostname,
         )
         console.log( formmatted )
