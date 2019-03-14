@@ -43,38 +43,38 @@ Set-StrictMode -Version Latest
 Set-PSDebug -Off #-Trace 2
 
 $scriptName = $MyInvocation.MyCommand.Name
-$scriptDir = Split-Path $MyInvocation.MyCommand.Path
 
 function showHelp()
 {
     Write-Host "USAGE: ${ScriptName} [options] -h[ostname] <hostname> option"
     Write-Host "Options:"
     Write-Host "  -act <token>   "
-    Write-Host "  -chpwd <oldPassword> -newpwd <newPassword> -username <username>"
+    Write-Host "  -chpwd <oldPassword> -newpwd <newPassword> -u[sername] <username>"
     Write-Host "  -emailavailable <emailname>"
     Write-Host "  -forgotpassword <emailname>"
-    Write-Host "  -resendActivationMail                 -username <username>"
-    Write-Host "  -getattributes                        -username <username>"
+    Write-Host "  -resendActivationMail                 -u[sername] <username>"
+    Write-Host "  -getattributes                        -u[sername] <username>"
 
-    Write-Host "  -getcommprefs                         -username <username>"
-    Write-Host "  -updatecommprefs          <json-file> -username <username>"
+    Write-Host "  -getcommprefs                         -u[sername] <username>"
+    Write-Host "  -updatecommprefs          <json-file> -u[sername] <username>"
 
-    Write-Host "  -getnotificationsprefs                -username <username>"
-    Write-Host "  -updatenotificationsprefs <json-file> -username <username>"
+    Write-Host "  -getnotificationsprefs                -u[sername] <username>"
+    Write-Host "  -updatenotificationsprefs <json-file> -u[sername] <username>"
 
-    Write-Host "  -getpersonalinfo                      -username <username>"
-    Write-Host "  -updatepersonalinfo       <json-file> -username <username>"
+    Write-Host "  -getpersonalinfo                      -u[sername] <username>"
+    Write-Host "  -updatepersonalinfo       <json-file> -u[sername] <username>"
 
-    Write-Host "  -getprofile                           -username <username>"
-    Write-Host "  -updateprofile            <json-file> -username <username>"
+    Write-Host "  -getprofile                           -u[sername] <username>"
+    Write-Host "  -updateprofile            <json-file> -u[sername] <username>"
 
     Write-Host "  -logintoken <username>"
-    Write-Host "  -lock <reason>                        -username <username>"
-    Write-Host "  -password <password default=${password}>"
+    Write-Host "  -lock <reason>                        -u[sername] <username>"
+    Write-Host "  -p[assword] <password default=${password}>"
     Write-Host "  -port <int default=${port}>"
-    Write-Host "  -reg    <file.json|file.csv>          -username <username> [-show and exit]"
-    Write-Host "  -unlock <reason>                      -username <username>"
-    Write-Host "  -update <csv-file>                    -username <username> # email pref, lock/unlock"
+    Write-Host "  -reg    <file.json|file.csv>          -u[sername] <username> [-show and exit]"
+    Write-Host "  -unlock <reason>                      -u[sername] <username>"
+    Write-Host "  -update <csv-file>                    -u[sername] <username> # email pref, lock/unlock"
+    Write-Host "  -verify <code>"
     exit 1
 }
 
@@ -204,6 +204,11 @@ try
 
         $result = update $hostname $port $player $password
         Write-Host "Updated: $username : $result"
+    }
+    elseif ($verify)
+    {
+        $code = $verify
+        verifyCode $hostname $port $code
     }
     elseif ($reg)
     {

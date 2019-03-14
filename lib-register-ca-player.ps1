@@ -158,6 +158,21 @@ function createUriBase( [string]$hostname, [int]$port )
     return $uriBase
 }
 
+function verifyCode( [string]$hostname, [int]$port, [string]$code )
+{
+    <#
+    .DESCRIPTION
+    Verify player’s email or SMS address
+
+    .PARAMETER code
+    String the code
+    #>
+
+    $baseUri = createUriBase $hostname $port
+    $uri = "${baseUri}/api/v1/players/verify/${code}"
+    $header = createHeader $hostname
+    return Invoke-WebRequest -uri $uri -Method GET -Headers $header
+}
 function isEmailnameAvailable( [string]$hostname, [int]$port, [string]$emailName ) # boolean
 {
     $baseUri = createUriBase $hostname $port
