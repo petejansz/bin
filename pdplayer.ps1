@@ -18,7 +18,7 @@ param
     [string]$password = "Password1",
     [string]$p = "Password1",
     [string]$hostname,
-    [string]$h,
+    [string]$h, # hostname
     [int]$port = 80,
     [switch]$help,
     [string]$reason,
@@ -72,7 +72,7 @@ function showHelp()
     Write-Host "  -lock <reason>                        -username <username>"
     Write-Host "  -password <password default=${password}>"
     Write-Host "  -port <int default=${port}>"
-    Write-Host "  -reg    <csv-file>                    -username <username> [-show and exit]"
+    Write-Host "  -reg    <file.json|file.csv>          -username <username> [-show and exit]"
     Write-Host "  -unlock <reason>                      -username <username>"
     Write-Host "  -update <csv-file>                    -username <username> # email pref, lock/unlock"
     exit 1
@@ -212,12 +212,27 @@ try
 
         if ($available -or $show)
         {
-            $csvfile = resolve-path $reg
-            $players = import-csv $csvfile
-            $player = $players | Where-Object {$_.PlayerEmail -eq $username}
-            $registerUserDTO = create_registerUserDTO $player $password
+            $json = $null
+            $player = $null
 
-            $json = ( $registerUserDTO | ConvertTo-Json -depth 4 ) -replace 'null', ''
+            if ( $reg -match "\.csv$" )
+            {
+                $csvfile = resolve-path $reg
+                $players = import-csv $csvfile
+                $player = $players | Where-Object {$_.PlayerEmail -eq $username}
+                $registerUserDTO = create_registerUserDTO $player $password
+                $json = ( $registerUserDTO | ConvertTo-Json -depth 4 ) -replace 'null', ''
+            }
+            elseif ( $reg -match "\.json$" )
+            {
+                $json = Get-Content $reg
+            }
+            else
+            {
+                Write-Host "Unknown file type. Supported file types: json, csv"
+                exit 1
+            }
+
             if ($show)
             {
                 Write-Debug "Show and quit:"
@@ -225,13 +240,20 @@ try
                 $json
                 exit
             }
+
             $response = execRestRegisterUser $hostname $port $json
             $xToken = [string]$response.Headers.'X-Token'
-            Write-Host "xToken: $xToken"
-            $xToken = $xToken.Trim()
-            $player.PlayerID = $xToken
-            $players | export-csv $csvfile -notype -force
-            Write-Host ($username.ToLower() + " xToken: $xToken")
+            if ($null -ne $xToken -and $xToken.Length -gt 0)
+            {
+                Write-Host "xToken: $xToken"
+                $xToken = $xToken.Trim()
+                if ($null -ne $player)
+                {
+                    $player.PlayerID = $xToken
+                    $players | export-csv $csvfile -notype -force
+                    Write-Host ($username.ToLower() + " xToken: $xToken")
+                }
+            }
         }
     }
 }
