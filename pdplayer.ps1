@@ -34,6 +34,7 @@ param
     [string]$updatepersonalinfo,
     [string]$updateprofile,
     [string]$update,
+    [string]$verify,
     [string]$reg,
     [switch]$show
 )
