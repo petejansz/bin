@@ -5,14 +5,12 @@
 
 param
 (
-    [string]$act,
-    [switch]$resendActivationMail,
+    [string]$activate,
     [string]$csvfile,
     [string]$chpwd,
     [string]$newpwd,
     [string]$logintoken,
     [string]$lock,
-    [string]$unlock,
     [string]$username,
     [string]$u,
     [string]$password = "Password1",
@@ -29,6 +27,9 @@ param
     [switch]$getpersonalinfo,
     [switch]$getprofile,
     [switch]$getnotificationsprefs,
+    [switch]$resendActivationMail,
+    [string]$resetpwd,
+    [string]$unlock,
     [string]$updatecommprefs,
     [string]$updatenotificationsprefs,
     [string]$updatepersonalinfo,
@@ -49,11 +50,10 @@ function showHelp()
 {
     Write-Host "USAGE: ${ScriptName} [options] -h[ostname] <hostname> option"
     Write-Host "Options:"
-    Write-Host "  -act <token>   "
+    Write-Host "  -activate <token>   "
     Write-Host "  -chpwd <oldPassword> -newpwd <newPassword> -u[sername] <username>"
     Write-Host "  -emailavailable <emailname>"
     Write-Host "  -forgotpassword <emailname>"
-    Write-Host "  -resendActivationMail                 -u[sername] <username>"
     Write-Host "  -getattributes                        -u[sername] <username>"
 
     Write-Host "  -getcommprefs                         -u[sername] <username>"
@@ -73,6 +73,8 @@ function showHelp()
     Write-Host "  -p[assword] <password default=${password}>"
     Write-Host "  -port <int default=${port}>"
     Write-Host "  -reg    <file.json|file.csv>          -u[sername] <username> [-show and exit]"
+    Write-Host "  -resendActivationMail                 -u[sername] <username>"
+    Write-Host "  -resetpwd <oneTimeToken> -newpwd <newPassword> "
     Write-Host "  -unlock <reason>                      -u[sername] <username>"
     Write-Host "  -update <csv-file>                    -u[sername] <username> # email pref, lock/unlock"
     Write-Host "  -verify <code>"
@@ -91,12 +93,12 @@ try
     if ($p) {$password = $p}
     if ($u) {$username = $u}
 
-    if ($act)
+    if ($activate)
     {
         try
         {
-            $devxToken = $act
-            $result = execRestActivateAccount $hostname $port $devxToken
+            $devxToken = $activate
+            $result = activateAccount $hostname $port $devxToken
         }
         catch
         {
@@ -105,19 +107,15 @@ try
     }
     elseif ($chpwd)
     {
-        $oldPassword = $chpwd
-        $bodyTemplate = '{"oldPassword" : "oldPassword_VALUE", "newPassword" : "newPassword_VALUE"}'
-        $body = $bodyTemplate -replace 'oldPassword_VALUE', $oldPassword
-        $body = $body -replace 'newPassword_VALUE', $newpwd
-        $password = $oldPassword
-        $token = login $hostname $port $username $password
-        execRestChangePassword $hostname $port $token $body
+        
+        $token = login $hostname $port $username $chpwd
+        changePassword $hostname $port $token $chpwd $newpwd
     }
     elseif ($lock)
     {
         if (-not($username)) {showHelp}
         $token = login $hostname $port $username $password
-        execRestLockService $hostname $port $token $true $lock
+        lockService $hostname $port $token $true $lock
     }
     elseif ($logintoken)
     {
@@ -129,7 +127,7 @@ try
     {
         if (-not($username)) {showHelp}
         $token = login $hostname $port $username $password
-        execRestLockService $hostname $port $token $false $unlock
+        lockService $hostname $port $token $false $unlock
     }
     elseif ($emailavailable)
     {
@@ -141,18 +139,24 @@ try
     {
         if (-not($forgotpassword)) {showHelp}
         $username = $forgotpassword
-        execRestForgottenPassword $hostname $port $username
+        forgottenPassword $hostname $port $username
     }
     elseif ($resendActivationMail)
     {
         if (-not($username)) {showHelp}
         $token = login $hostname $port $username $password
-        execRestReqSendActivationMail $hostname $port $token
+        reqSendActivationMail $hostname $port $token
+    }
+    elseif ($resetpwd)
+    {
+        if (-not($newpwd)) {showHelp}
+        $oneTimeToken = $resetpwd
+        resetPassword $hostname $port $newpwd $oneTimeToken
     }
     elseif ($getattributes)
     {
         $token = login $hostname $port $username $password
-        execRestGetAttributes $hostname $port $token
+        getAttributes $hostname $port $token
     }
     elseif ($getcommprefs)
     {
@@ -179,7 +183,7 @@ try
     elseif ($getpersonalinfo)
     {
         $token = login $hostname $port $username $password
-        execRestGetPersonalInfo $hostname $port $token
+        getPersonalInfo $hostname $port $token
     }
     elseif ($updatepersonalinfo)
     {
