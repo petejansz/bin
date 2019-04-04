@@ -21,16 +21,16 @@ $whereWasI = $pwd
 
 trap [Exception]
 {
-    [Console]::Error.WriteLine($_.Exception);
+    [Console]::Error.WriteLine($_.Exception)
     Set-Location $whereWasI
 }
 
 $ScriptName = $MyInvocation.MyCommand.Name
 function showHelp()
 {
-    Write-Output "USAGE: $ScriptName [option] -configfile <xml configfile> -keyfile <text file>"
+    Write-Output "USAGE: $ScriptName [option] -configfile <jboss-env-config.xml> -keyfile <text file>"
     Write-Output "  [option]"
-    Write-Output "      -envConfigKeys  Write env-config/*-mobile.xml <api-key to stdout"
+    Write-Output "      -envConfigKeys  Write env-config/*-mobile.xml api-key element to stdout"
     Write-Output "      -stdout     # Write XML to stdout"
     Write-Output "      -update     # Uptdate (overwrite) configfile"
     exit 1
@@ -53,9 +53,10 @@ if ( -not($configfile) -or -not ($keyfile ) )
     showHelp
 }
 
-function createEnvConfigKey ($key)
+function createEnvConfigKeyAsString ($key)
 {
-    "<api-key key=`"{0}`" />" -f $key
+    $str = "<api-key key=`"{0}`" />" -f $key
+    return $str
 }
 
 $configfile = Resolve-Path $configfile
@@ -76,7 +77,7 @@ foreach ($newApiKeyValue in $keys)
 
     if ($envConfigKeys)
     {
-        createEnvConfigKey $newApiKeyValue
+        Write-Output( "<api-key key=`"{0}`" />" -f $newApiKeyValue )
     }
 
     $expression = "//signaturekey[.=`'{0}`']" -f $newApiKeyValue
@@ -109,5 +110,8 @@ if ($stdout)
 
 if ($doUpdate -and $update)
 {
-    Move-Item -force $tempFile $configfile
+    # Backup original confige file:
+    $backupFilename = $configfile -replace '.xml', '.bak'
+    Copy-Item $configfile $backupFilename -Force
+    Remove-Item $tempFile
 }
