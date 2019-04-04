@@ -24,9 +24,10 @@ trap [Exception]
 $ScriptName = $MyInvocation.MyCommand.Name
 function showHelp()
 {
-    Write-Output "USAGE: $ScriptName [option] -proto <http|https> -hostname <hostname> -keyfile <xml or text file>"
-    Write-Output "  [option]"
-    Write-Output "      -apipath <path> # Default = second-chance/site"
+    Write-Host "Check, validate, test ESA api-keys"
+    Write-Host "USAGE: $ScriptName [option] -proto <http|https> -hostname <hostname> -keyfile <xml or text file>"
+    Write-Host "  [option]"
+    Write-Host "      -apipath <path> # Default = ${apipath}"
     exit 1
 }
 
