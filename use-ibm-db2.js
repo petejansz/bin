@@ -21,6 +21,7 @@ program
     .option( '-p, --port [port]', 'DB2 port number (default=55000)', parseInt )
     .option( '-u, --username [username]', 'DB2 username' )
     .option( '-P, --password [password]', 'Password' )
+    .option( '-v, --verbose', 'Verbose mode' )
     .parse( process.argv )
 
 process.exitCode = 1
@@ -48,7 +49,10 @@ var dsn = util.format(
     dbname, hostname, uid, pwd, port )
 
 var startTime = new Date()
-console.error( util.format( "Connecting to: %s://%s:%s", hostname, dbname, port ) )
+    if (program.verbose)
+    {
+        console.error( util.format( "Connecting to: %s://%s:%s", hostname, dbname, port ) )
+    }
 
 var sqlStatement = null
 
@@ -63,7 +67,10 @@ else
 
 var conn = ibmdb.open( dsn, function ( err, conn )
 {
-    console.error( "DB connected (seconds): " + peteUtil.elapsedTime( startTime ) )
+    if (program.verbose)
+    {
+        console.error( "DB connected (seconds): " + peteUtil.elapsedTime( startTime ) )
+    }
 
     if ( err )
     {
