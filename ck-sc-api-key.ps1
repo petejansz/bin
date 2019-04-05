@@ -7,7 +7,6 @@ param
     [string] $h,
     [string] $password = "Password1",
     [string] $p = "Password1",
-    [string] $apipath = "second-chance/site",
     [string] $keyFile,
     [switch] $help,
     [string] $username,
@@ -23,6 +22,8 @@ trap [Exception]
     [Console]::Error.WriteLine($_.Exception)
 }
 
+$devApiPath = "players/self/attributes"
+$prodApiPath = "second-chance/site"
 $ScriptName = $MyInvocation.MyCommand.Name
 function showHelp()
 {
@@ -34,8 +35,6 @@ function showHelp()
     Write-Host "      -u[sername] <username>"
     Write-Host "      -p[assword] <password default=${password}>"
     Write-Host "      -keyfile <jboss-env-config.xml or text file>"
-    Write-Host "  [options]"
-    Write-Host "      -apipath <path> # Default = ${apipath}"
     exit 1
 }
 
@@ -47,42 +46,50 @@ if ($h) { $hostname = $h }
 if ($p) { $password = $p }
 if ($u) { $username = $u }
 
+. lib-register-ca-player.ps1
 
-function createHeader($apiKey, $oauthToken)
+function createHeader2($apiKey, $oauthToken)
 {
-    $header = @{                                `
-            'Content-Type'   = 'application/json'    ; `
-            'cache-control'  = 'no-cache'            ; `
+    $header = @{                                        `
+            'content-type'   = 'application/json'       ; `
+            'cache-control'  = 'no-cache'               ; `
             'authorization'  = ("OAuth " + $oauthToken) ; `
-            'x-ex-system-id' = 8             ; `
-            'x-channel-id'   = 3              ; `
-            'x-site-id'      = 35               ; `
-            'X-ESA-API-KEY'  = $apiKey   ; `
+            'x-ex-system-id' = 8                        ; `
+            'x-channel-id'   = 3                        ; `
+            'x-site-id'      = 35                       ; `
+            'x-esa-api-key'  = $apiKey                  ; `
 
     }
 
     return $header
 }
 
-$uri = "{0}://{1}/api/v1/{2}" -f $proto, $hostname, $apipath
-if ($keyFile -match "`.xml$")
+# Defaults:
+$port = 80
+$apipath = $devApiPath
+
+if ( $proto -match "https" )
 {
-    $keys = (select-xml $keyFile -xpath "//apikey").Node.signaturekey
+    $port = 443
+    $apipath = $prodApiPath
+}
+
+$uri = "{0}://{1}/api/v1/{2}" -f $proto, $hostname, $apipath
+
+if ( $keyFile -match "`.xml$" )
+{
+    $keys = (Select-Xml $keyFile -xpath "//apikey").Node.signaturekey
 }
 else
 {
     $keys = Get-Content $keyFile
 }
 
-$port = 80
-if ($proto -match "https")
-{$port = 443}
+$oauthToken = login $hostname $port $username $password
 
-$oauthToken = pdplayer -h $hostname -port $port -logintoken $username -password $password
-
-foreach ($apiKey in $keys)
+foreach ( $apiKey in $keys )
 {
     Write-Output $apiKey
-    $header = createHeader $apiKey $oauthToken
-    $response = Invoke-WebRequest -uri $uri -Method GET -Headers $header
+    $header = createHeader2 $apiKey $oauthToken
+    Invoke-WebRequest -uri $uri -Method GET -Headers $header | Out-Null
 }
