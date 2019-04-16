@@ -26,13 +26,12 @@
     {
         "type": "PowerShell",
         "request": "launch",
-        "name": "pdplayer.ps1",
-        "script": "${workspaceRoot}/pdplayer.ps1",
+        "name": "rm-api-keys.ps1",
+        "script": "${workspaceRoot}/rm-api-keys.ps1",
         "args": [
-            "-hostname", "cadev1.gtech.com",
-            "-username", "testc@yopmail.com", //"-mobile",
-            "-getattributes"],
-        "cwd": "${workspaceRoot}"
+            "-keyFile", "rm-keys.txt", "-configfile", "test.xml", "-stdout"
+           ],
+        "cwd": "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/install/sec-gateway-jboss5-container-install/src/main/env-config"
     },
         {
             "type": "node",
