@@ -14,21 +14,21 @@ var description = 'pd2-admin CLI api syntax\n\n'
 description += '  --api GET:                  \n'
 description += '        playerId -u <username>\n'
 description += '        enums\n'
-description += '        communication-preferences --playerid <playerId>\n'
-description += '        note                      --playerid <playerId>\n'
-description += '        notifications             --playerid <playerId>\n'
-description += '        notifications-preferences --playerid <playerId>\n'
-description += '        personal-info             --playerid <playerId>\n'
-description += '        player-history            --playerid <playerId>\n'
-description += '        player-history-status     --playerid <playerId>\n'
-description += '        profile                   --playerid <playerId>\n'
-description += '        services                  --playerid <playerId>\n'
+description += '        communication-preferences --playerid <pid> | -u <username>\n'
+description += '        note                      --playerid <pid> | -u <username>\n'
+description += '        notifications             --playerid <pid> | -u <username>\n'
+description += '        notifications-preferences --playerid <pid> | -u <username>\n'
+description += '        personal-info             --playerid <pid> | -u <username>\n'
+description += '        player-history            --playerid <pid> | -u <username>\n'
+description += '        player-history-status     --playerid <pid> | -u <username>\n'
+description += '        profile                   --playerid <pid> | -u <username>\n'
+description += '        services                  --playerid <pid> | -u <username>\n'
 description += '  --api SEARCH/UPDATES:\n'
-description += '        actacct  <pers-info-file> --playerid <playerId> # Activate account\n'
-description += '        closeacct                 --playerid <playerId> # Close account\n'
-description += '        mknote                    --playerid <playerId>\n'
+description += '        actacct  <pers-info-file> --playerid <pid> | -u <username> # Activate account\n'
+description += '        closeacct                 --playerid <pid> | -u <username> # Close account\n'
+description += '        mknote                    --playerid <pid> | -u <username>\n'
 description += '        search   --<city|state|zipcode|email|firstname|lastname>\n'
-description += '        services --activate | --suspend --serviceids sid,sid --playerid <playerId>\n'
+description += '        services --activate | --suspend --serviceids sid,sid --playerid <pid> | -u <username>\n'
 
 program
     .version( '1.0.0' )
@@ -71,15 +71,27 @@ async function main()
         pdAdminSystem = createPdAdminSystem( program )
         axiosInstance = pd2admin.createAxiosInstance( pdAdminSystem )
 
+        var playerid = null
+
+        if ( program.playerid )
+        {
+            playerid = program.playerid
+        }
+        else if ( program.username && !program.api.match( /search/i ) )
+        {
+            promisedResponse = await pd2admin.getPlayerId( axiosInstance, program.username )
+            playerid = promisedResponse.data[0].playerId
+        }
+
         if ( program.api == 'actacct' && program.file )
         {
             var personalInfo = JSON.parse( fs.readFileSync( program.file ).toString().trim() )
             personalInfo.reason = 'Activate account.'
             // pd2admin.activateAccount( pdAdminSystem, personalInfo.id, personalInfo, commonResponseHandler )
         }
-        else if ( program.api == 'closeacct' && program.playerid )
+        else if ( program.api == 'closeacct' && playerid )
         {
-            var promisedResponse = await pd2admin.closeAccount( axiosInstance, program.playerid )
+            var promisedResponse = await pd2admin.closeAccount( axiosInstance, playerid )
             streamIt( promisedResponse.data )
         }
         else if ( program.api === 'enums' )
@@ -92,16 +104,16 @@ async function main()
             var promisedResponse = await pd2admin.getPlayerId( axiosInstance, program.username )
             streamIt( promisedResponse.data )
         }
-        else if ( program.api.match( /-preferences$|^note$|notifications|^personal-info$|^profile$|player-history/i ) && program.playerid )
+        else if ( program.api.match( /-preferences$|^note$|notifications|^personal-info$|^profile$|player-history/i ) && playerid )
         {
-            var promisedResponse = await pd2admin.getPlayerThing( axiosInstance, program.playerid, program.api )
+            var promisedResponse = await pd2admin.getPlayerThing( axiosInstance, playerid, program.api )
             streamIt( promisedResponse.data )
         }
-        else if ( program.api === 'mknote' && program.playerid )
+        else if ( program.api === 'mknote' && playerid )
         {
-            var promisedResponse = await pd2admin.createNote( axiosInstance, program.playerid )
-            if (promisedResponse.status != 204)
-            {console.error( promisedResponse.status )}
+            var promisedResponse = await pd2admin.createNote( axiosInstance, playerid )
+            if ( promisedResponse.status != 204 )
+            { console.error( promisedResponse.status ) }
         }
         else if ( program.api === 'search' )
         {
@@ -117,9 +129,9 @@ async function main()
             var promisedResponse = await pd2admin.searchForPlayers( axiosInstance, qs )
             streamIt( promisedResponse.data )
         }
-        else if ( program.api === 'services' && program.playerid )
+        else if ( program.api === 'services' && playerid )
         {
-            var services = { playerId: program.playerid }
+            var services = { playerId: playerid }
 
             if ( program.activate || program.suspend )
             {
@@ -165,9 +177,13 @@ function formatJSON( o )
 
 function streamIt( o )
 {
-    if ( ! ( typeof o === 'string' || o instanceof String ) )
+    if ( !( typeof o === 'string' || o instanceof String ) )
     {
         str_to_stream( formatJSON( o ) ).pipe( process.stdout )
+    }
+    else if ( typeof o === 'string' || o instanceof String && o.length )
+    {
+        str_to_stream( o ).pipe( process.stdout )
     }
 
     process.exitCode = 0
