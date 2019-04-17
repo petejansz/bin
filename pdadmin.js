@@ -100,7 +100,8 @@ async function main()
         else if ( program.api === 'mknote' && program.playerid )
         {
             var promisedResponse = await pd2admin.createNote( axiosInstance, program.playerid )
-            console.log( promisedResponse.status )
+            if (promisedResponse.status != 204)
+            {console.error( promisedResponse.status )}
         }
         else if ( program.api === 'search' )
         {
@@ -164,7 +165,11 @@ function formatJSON( o )
 
 function streamIt( o )
 {
-    str_to_stream( formatJSON( o ) ).pipe( process.stdout )
+    if ( ! ( typeof o === 'string' || o instanceof String ) )
+    {
+        str_to_stream( formatJSON( o ) ).pipe( process.stdout )
+    }
+
     process.exitCode = 0
 }
 
