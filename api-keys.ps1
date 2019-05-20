@@ -43,7 +43,12 @@ function showHelp()
     exit 1
 }
 
-if ($h -or $help) { showHelp }
+if ( $h -or $help ) { showHelp }
+if ( -not ( $addKeys -xor $lsKeys -xor $rmKeys ) ) { showHelp }
+if ( -not $configfile ) { showHelp }
+if ( (-not $keyFile) -and ($addKeys -or $rmKeys) ) {showHelp}
+
+
 function speak( [string] $msg )
 {
     if (-not ($quiet))
