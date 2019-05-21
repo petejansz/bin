@@ -3,6 +3,7 @@
   Author: Pete Jansz
 */
 
+var path = require( 'path' )
 const modulesPath = '/usr/share/node_modules/'
 var program = require( modulesPath + 'commander' )
 var processes = require( modulesPath + 'pete-lib/processes-lib' )
@@ -62,43 +63,70 @@ else if ( program.chpwd )
 }
 else if ( program.note )
 {
-    restPath += 'player-note'
+    restPath += 'notification'
     request = processes.createProcessesRequest()
-    request.playerid = program.playerid
-
+    request.playerId = program.playerid
+    request.templateId = 1
+    request.parameters = {"1": path.basename( __filename ) + ': Make a note @ ' + new Date().toString() }
     moreHeaders['x-tx-id'] = request.transactionIdBase
     moreHeaders['x-tx-time'] = request.transactionTime
-
-    const note =
-    {
-        alert: false,
-        id: null,
-        playerid: request.playerid,
-        status: 1,
-        type: 1,
-        value: 'Make a note @ ' + new Date(),
-        priority: 1,
-        user: 'administrator',
-    }
-
-    request.note = note
 }
 
 processes.createAxiosInstance( program.hostname, program.playerid, moreHeaders ).
-    post( restPath, request ).then( function ( response )
-    {
-        if ( response.data.errorEncountered )
-        {
-            console.error( response.data )
-        }
-        else
-        {
-            process.exitCode = 0
-        }
-    } )
+    post( restPath, request )
+    .then( function ( response )
+            {
+                if ( response.data.errorEncountered )
+                {
+                    console.error( response.data )
+                }
+                else
+                {
+                    process.exitCode = 0
+                }
+            }
+        )
+    .catch( axiosErrorHandler )
 
 // End main logic
 function commanderCsvList( val )
 {
     return val.split( ',' )
+}
+
+function axiosErrorHandler( error )
+{
+    if ( error.response && error.response.status < 500 )
+    {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        var response =
+        {
+            statusText: error.response.statusText,
+            statusCode: error.response.status,
+            data: error.response.data
+        }
+
+        console.error( response )
+    }
+    else if ( error.response && error.response.status >= 500 )
+    {
+        console.error( error.response.status )
+        console.error( error.response.headers )
+        console.error( error.response.data )
+    }
+    else if ( error.request )
+    {
+        // The request was made but no response was received
+        // error.request is an instance of XMLHttpRequest in the browser and an instance of
+        // http.ClientRequest in node.js
+        console.error( error.request )
+    }
+    else
+    {
+        // Something happened in setting up the request that triggered an Error
+        console.error( 'Error', error.message )
+    }
+
+    //console.error( error.config )
 }
