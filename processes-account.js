@@ -4,9 +4,8 @@
 */
 
 var path = require( 'path' )
-const modulesPath = '/usr/share/node_modules/'
-var program = require( modulesPath + 'commander' )
-var processes = require( modulesPath + 'pete-lib/processes-lib' )
+var program = require( 'commander' )
+var processes = require( 'pete-lib/processes-lib' )
 
 program
     .version( '0.0.1' )

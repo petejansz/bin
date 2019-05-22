@@ -4,10 +4,9 @@
  * 2019-03-06
  */
 
-const modulesPath = '/usr/share/node_modules/'
 const util = require( 'util' )
-var program = require( modulesPath + 'commander' )
-var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
+var program = require( 'commander' )
+var peteUtil = require( 'pete-lib/pete-util' )
 
 const REQUIREMENTS_GRAMMER = '<state>-<envType>-<function>[-appType(default=pws)]'
 

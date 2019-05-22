@@ -6,9 +6,9 @@
 const modulesPath = '/usr/share/node_modules/'
 var fs = require( 'fs' )
 var util = require( 'util' )
-var program = require( modulesPath + 'commander' )
-var str_to_stream = require( modulesPath + 'string-to-stream' )
-var pd2admin = require( modulesPath + 'pete-lib/pd2-admin-axios-lib' )
+var program = require( 'commander' )
+var str_to_stream = require( 'string-to-stream' )
+var pd2admin = require( 'pete-lib/pd2-admin-axios-lib' )
 
 var description = 'pd2-admin CLI api syntax\n\n'
 description += '  --api GET:                  \n'

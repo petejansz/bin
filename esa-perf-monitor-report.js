@@ -5,9 +5,8 @@
 
 var fs = require( 'fs' )
 var util = require( 'util' )
-const modulesPath = '/usr/share/node_modules/'
-var program = require( modulesPath + 'commander' )
-var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
+var program = require( 'commander' )
+var peteUtil = require( 'pete-lib/pete-util' )
 
 program
     .version( '1.0.0' )

@@ -1,9 +1,8 @@
 // Pete Jansz
 // Generate SQL update script file for
 
-const modulesPath = '/usr/share/node_modules/'
-var program = require( modulesPath + 'commander' )
-var csvParser = require( modulesPath + 'csv-parse/lib/sync' )
+var program = require( 'commander' )
+var csvParser = require( 'csv-parse/lib/sync' )
 var fs = require( 'fs' )
 var util = require( 'util' )
 var path = require( 'path' )

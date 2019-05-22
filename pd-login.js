@@ -3,11 +3,10 @@
   Author: Pete Jansz
 */
 
-const modulesPath = '/usr/share/node_modules/'
-const axios = require( modulesPath + 'axios' )
-var str_to_stream = require( modulesPath + 'string-to-stream' )
-var program = require( modulesPath + 'commander' )
-var igtCas = require( modulesPath + 'pete-lib/igt-cas' )
+const axios = require( 'axios' )
+var str_to_stream = require( 'string-to-stream' )
+var program = require( 'commander' )
+var igtCas = require( 'pete-lib/igt-cas' )
 
 program
     .version( '0.0.1' )

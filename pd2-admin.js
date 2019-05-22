@@ -3,14 +3,12 @@
   Author: Pete Jansz 2017
 */
 
-const modulesPath = '/usr/share/node_modules/'
 var fs = require( 'fs' )
 var util = require( 'util' )
-var program = require( modulesPath + 'commander' )
-var str_to_stream = require( modulesPath + 'string-to-stream' )
-//var stream_to_str = require( 'stream-to-string' )
-var pd2admin = require( modulesPath + 'pete-lib/pd2-admin-lib' )
-var peteUtil = require( modulesPath + 'pete-lib/pete-util' )
+var program = require( 'commander' )
+var str_to_stream = require( 'string-to-stream' )
+var pd2admin = require( 'pete-lib/pd2-admin-lib' )
+var peteUtil = require( 'pete-lib/pete-util' )
 
 var description = 'pd2-admin CLI api syntax\n\n'
 description += '  --api GET:                  \n'

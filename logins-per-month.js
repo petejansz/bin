@@ -2,10 +2,9 @@
 var fs = require( 'fs' )
 var path = require( 'path' )
 var util = require( 'util' )
-const modulesPath = '/usr/share/node_modules/'
-var program = require( modulesPath + 'commander' )
-var csvParser = require( modulesPath + 'csv-parse/lib/sync' )
-var lib1 = require( modulesPath + 'pete-lib/pete-util' )
+var program = require( 'commander' )
+var csvParser = require( 'csv-parse/lib/sync' )
+var lib1 = require( 'pete-lib/pete-util' )
 
 program
     .version( '0.0.1' )

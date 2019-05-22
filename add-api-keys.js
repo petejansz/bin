@@ -2,9 +2,8 @@
 
 var fs = require( "fs" )
 var util = require( 'util' )
-const modulesPath = '/usr/share/node_modules/'
-var program = require( modulesPath + 'commander' )
-var xml2js = require( modulesPath + 'xml2js' )
+var program = require( 'commander' )
+var xml2js = require( 'xml2js' )
 
 program
     .version( '0.0.1' )

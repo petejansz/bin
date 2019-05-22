@@ -2,9 +2,8 @@
  * Spawn (run a program), wait for completion, write result to stdout/stderr.
  */
 
-const modulesPath = '/usr/share/node_modules/'
 var util = require( 'util' )
-var program = require( modulesPath + 'commander' )
+var program = require( 'commander' )
 const { spawnSync } = require( 'child_process' )
 
 const BIN_PATH = 'C:/Users/pjansz/Documents/bin/'
