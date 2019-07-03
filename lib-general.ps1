@@ -74,7 +74,7 @@ function dateToLong([string]$yyyymmdd)
 }
 function longToDate([long] $long)
 {
-    "new Date(${long})" | node -p
+    "new Date(${long}).toString()" | node -p
 }
 function dateToTime([string] $yyyymmdd)
 {
