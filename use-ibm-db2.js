@@ -20,7 +20,7 @@ program
     .description( 'NodeJS IBM DB2 SQL client' )
     .usage( scriptName + ' -f sqlfile | ssqlstmt' )
     .option( '-c, --csv', 'CSV output' )
-    .option( '-d, --dbname', util.format( 'DB name (default=%s)', dbname ) )
+    .option( '-d, --dbname [dbname]', util.format( 'DB name (default=%s)', dbname ) )
     .option( '-f, --sqlfile [sqlfile]', 'SQL file' )
     .option( '-s, --sqlstmt [sqlstmt]', 'SQL statement' )
     .option( '-h, --hostname [hostname]', util.format( 'DB2 host (default=%s)', hostname ) )
