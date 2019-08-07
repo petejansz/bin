@@ -1,8 +1,12 @@
 .history
 .svn
-
+*.exe
 *.jade
-
+try.js
+test-drive.*
+build-crm-ext-jars.ps1
+class.ps1
+sort-multi-key.js
 # Logs
 logs
 *.log
