@@ -15,6 +15,8 @@ param
     [switch]$h
 )
 
+. lib-general.ps1
+
 $ErrorActionPreference = "stop"
 Set-StrictMode -Version Latest
 $ScriptName = $MyInvocation.MyCommand.Name
@@ -27,11 +29,20 @@ function showHelp()
     exit 1
 }
 
-if ($h -or $help) {showHelp}
-if ( -not($file) ) {showHelp}
+if ($h -or $help) { showHelp }
+if ( -not($file) ) { showHelp }
 
-$times = Get-Content $file `
-    | ForEach-Object {if ($_ -match "^201[0-9]{1}.* Archive pass:") {$_.split()[0]} }
+New-Variable -Name DateRegEx -Option ReadOnly -Value '^20[0-9]{2}-[0-9]{2}-[0-9]{2}'
+New-Variable -Name TimeRegEx -Option ReadOnly -Value '[0-9]{2}:[0-9]{2}:[0-9]{2}'
+$times = @() # Array of System.DateTime
+
+foreach ($line in (Get-Content $file))
+{
+    if ($line -match "${DateRegEx}.${TimeRegEx}")
+    {
+        $times += convertLog4JDateToDateTime $line
+    }
+}
 
 for ($i = 0; $i -lt $times.Length; $i++ )
 {
@@ -48,14 +59,11 @@ for ($i = 0; $i -lt $times.Length; $i++ )
 
     if ($null -ne $next)
     {
-        $currentLong = dateToLong $current
-        $nextLong = dateToLong $next
-
-        $difference = ($nextLong - $currentLong) / 60000
+        $difference = ($next.Ticks - $current.Ticks) #/ 60000
         if ($difference -gt 1)
         {
             $delta = [System.Math]::Round($difference, 2)
-            Write-Output ("{0}: {1} {2} {3}" -f $file, $current, $next, $delta)
+            Write-Output ("{0}: {1} {2} {3}" -f $file, (Get-Date $current -Format $DateFormat), (Get-Date $next -Format $DateFormat), $delta)
         }
     }
 }
