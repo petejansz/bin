@@ -7,10 +7,10 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "pd2-admin.js",
-            "program": "${workspaceFolder}/pd-winner-notification.js",
+            "name": "pdadmin.js",
+            "program": "${workspaceFolder}/pdadmin.js",
             "args": [
-                "--host", "cat2", "--api", "mknote", "--playerid", "1000002400"
+                "--host", "dev", "--api", "services", "--playerid", "1000006385", "--activate",  "--serviceids", "11971,11972"
             ]
         },
     {
