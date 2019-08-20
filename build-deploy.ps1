@@ -1,24 +1,24 @@
 <#
-    Help build, deploy various california EAR, WAR files and manage servers.
+    Help build, deploy various PD site EAR, WAR files and manage servers.
     Author: Pete Jansz, IGT, June 2017
 #>
 
 param
 (
     [switch]    $broker,
-    [switch]    $ca,
+    [switch]    $site,
     [switch]    $core,
-    [switch]    $pdadmin,   # default build only war
-    [switch]    $ear,       # also build pdadmin ear
+    [switch]    $pdadmin, # default build only war
+    [switch]    $ear, # also build pdadmin ear
     [switch]    $ext,
     [switch]    $proc,
-    [string]    $caVersion,
-    [string]    $caHome,
-    [string]    $pd2Home,
+    [string]    $pdSiteVersion,
+    [string]    $pdSiteHome,
+    [string]    $productHome,
     [switch]    $build,
     [switch]    $deploy,
     [switch]    $push,
-    [switch]    $pd2,
+    [switch]    $product,
     [switch]    $restart,
     [switch]    $stop,
     [switch]    $start,
@@ -33,7 +33,7 @@ $whereWasI = $pwd
 
 trap [Exception]
 {
-    [Console]::Error.WriteLine($_.Exception);
+    [Console]::Error.WriteLine($_.Exception)
     Set-Location $whereWasI
 }
 
@@ -43,14 +43,14 @@ function showHelp()
 {
     Write-Output "USAGE: $ScriptName [option] -broker | -core | -ext | -pdadmin [-ear] | -proc"
     Write-Output "  option"
-    Write-Output "    -ca                # Build entire CA"
-    Write-Output '    -caVersion <version> default = $env:CA_VERSION'
-    Write-Output "    -caHome    <path>"
+    Write-Output "    -site              # Build entire SITE code"
+    Write-Output '    -pdSiteVersion <version> default = $env:PD_SITE_VERSION'
+    Write-Output "    -pdSiteHome    <path>"
     Write-Output "    -ear               # Also build pd-admin EAR"
-    Write-Output "    -pd2Home   <path>"
+    Write-Output "    -productHome   <path>"
     Write-Output "    -build             # Build EAR/WAR file"
     Write-Output "    -deploy            # Deploy to local server container"
-    Write-Output "    -pd2               # Build entire PD2"
+    Write-Output "    -product           # Build entire PD product"
     Write-Output "    -push              # Push to remote dev host"
     Write-Output "    -restart           # Restart each JBoss server"
     Write-Output "    -start             # Start each JBoss server"
@@ -58,10 +58,10 @@ function showHelp()
     exit 1
 }
 
-if ($h -or $help) {showHelp}
-if ( -not($core) -and -not($pdadmin) -and -not($proc) -and -not($ca) -and -not($pd2) -and -not($broker) -and -not($ext)) {showHelp}
+if ($h -or $help) { showHelp }
+if ( -not($core) -and -not($pdadmin) -and -not($proc) -and -not($site) -and -not($product) -and -not($broker) -and -not($ext)) { showHelp }
 if ( -not($build) -and -not($deploy) -and -not($push) -and -not($restart) -and -not($start) -and -not($stop) )
-{showHelp}
+{ showHelp }
 
 if (-not $env:JBOSS_HOME)
 {
@@ -69,26 +69,19 @@ if (-not $env:JBOSS_HOME)
     exit 1
 }
 
-if (-not ($caVersion))
+if (-not ($pdSiteHome -and (Test-Path $pdSiteHome )))
 {
-    if ( $env:CA_VERSION )
-    {
-        $caVersion = $env:CA_VERSION
-    }
-    else
-    {
-        Write-Warning 'Not defined: $env:CA_VERSION'
-        exit 1
-    }
-}
-if (-not ($caHome -and (Test-Path $caHome )))
-{
-    $caHome = $env:CA
+    $pdSiteHome = $env:PD_SITE
 }
 
-if (-not ($pd2Home -and (Test-Path $pd2Home )))
+[xml]$pom = Get-Content $pdSiteHome/pom.xml
+$pdSiteVersion = $pom.project.version
+$artifactid = $pom.project.artifactId # e.g., california, njs, the prefix of ear, war filename.
+$prodVersion = $pom.project.properties.'product.version'
+
+if (-not ($productHome -and (Test-Path $productHome )))
 {
-    $pd2Home = $env:PD2
+    $productHome = $env:PD_PRODUCT
 }
 
 class ServerClass
@@ -119,7 +112,7 @@ class ServerClass
             Write-Warning $pid
             stop-process -force -id $pid
         }
-        catch {}
+        catch { }
     }
 
     start()
@@ -139,20 +132,20 @@ function manageServers()
 
     if ($core)
     {
-        if ($stop ) {$coreServer.stop()}
-        if ($start -or $restart) {$coreServer.start()}
+        if ($stop ) { $coreServer.stop() }
+        if ($start -or $restart) { $coreServer.start() }
     }
 
     if ($proc)
     {
-        if ($stop ) {$procServer.stop()}
-        if ($start -or $restart) {$procServer.start()}
+        if ($stop ) { $procServer.stop() }
+        if ($start -or $restart) { $procServer.start() }
     }
 
     if ($pdadmin)
     {
-        if ($stop ) {$pdadminServer.stop()}
-        if ($start -or $restart) {$pdadminServer.start()}
+        if ($stop ) { $pdadminServer.stop() }
+        if ($start -or $restart) { $pdadminServer.start() }
     }
 }
 
@@ -177,7 +170,7 @@ function pushToDev([string]$artifact, [string]$hostname, [string]$targetDir)
         $msg = "Pushing {0} to {1}" -f (split-path -leaf $artifact), $pushTarget
         Write-Host $msg
         pscp -pw "pilot12" $artifact $pushTarget
-        if (-not($?)) {exit 1}
+        if (-not($?)) { exit 1 }
     }
 }
 
@@ -205,23 +198,23 @@ function build( $componentPaths )
 function doAdminFrontend()
 {
     #Build california-admin-frontend WAR:
-    $componentPaths = @("$caHome/components/admin/admin-frontend")
+    $componentPaths = @("$pdSiteHome/components/admin/admin-frontend")
     build $componentPaths;
-    $targetDir = "$caHome/components/admin/admin-frontend/target"
-    deployArtifact $targetDir "california-admin-frontend-${caVersion}.war" "pd2-admin-rest"
-    $artifact = "{0}/{1}" -f $targetDir, "california-admin-frontend-${caVersion}.war"
+    $targetDir = "$pdSiteHome/components/admin/admin-frontend/target"
+    deployArtifact $targetDir "${artifactid}-admin-frontend-${pdSiteVersion}.war" "pd2-admin-rest"
+    $artifact = "{0}/{1}" -f $targetDir, "${artifactid}-admin-frontend-${pdSiteVersion}.war"
     $pushOutput = pushToDev $artifact "pdadmin" "/tmp/server/pd2-admnin-rest/deploy"
     $pushOutput | Out-Null
 
     if ($ear)
     {
         # Build california-admin-rest-app EAR:
-        $componentPaths = @("$pd2Home/components/admin/admin-player-resources")
-        $componentPaths += "$caHome/components/admin/admin-rest"
+        $componentPaths = @("$productHome/components/admin/admin-player-resources")
+        $componentPaths += "$pdSiteHome/components/admin/admin-rest"
         build $componentPaths
-        $targetDir = "$caHome/components/admin/admin-rest/admin-rest-application/target"
-        deployArtifact $targetDir "california-admin-rest-app-${caVersion}.ear" "pd2-admin-rest"
-        $artifact = "{0}/{1}" -f $targetDir, "california-admin-rest-app-${caVersion}.ear"
+        $targetDir = "$pdSiteHome/components/admin/admin-rest/admin-rest-application/target"
+        deployArtifact $targetDir "${artifactid}-admin-rest-app-${pdSiteVersion}.ear" "pd2-admin-rest"
+        $artifact = "{0}/{1}" -f $targetDir, "${artifactid}-admin-rest-app-${pdSiteVersion}.ear"
         $pushOutput = pushToDev $artifact "pdadmin" "/tmp/server/pd2-admnin-rest/deploy"
         $pushOutput | Out-Null
     }
@@ -230,100 +223,100 @@ function doAdminFrontend()
 function doCrmExt()
 {
     Write-Host "Building crm-ext prov-action-plugins jar ..."
-    Set-Location $env:PD2\components\prov\prov-action-plugins
+    Set-Location $env:PD_PRODUCT\components\prov\prov-action-plugins
     mvn -q -DskipTests clean install | out-null
-    Get-ChildItem -file *.jar -r -path .| %{pscp -pw pilot12 $_.fullname pilot@pdext:/tmp/.}
+    Get-ChildItem -file *.jar -r -path . | ForEach-Object { pscp -pw pilot12 $_.fullname pilot@pdext:/tmp/. }
 
     Write-Host "Building crm-ext dlv-plugins-essns jar ..."
-    Set-Location $env:PD2\components\dlv\dlv-plugins-essns
+    Set-Location $env:PD_PRODUCT\components\dlv\dlv-plugins-essns
     mvn -q -DskipTests clean install | out-null
-    Get-ChildItem -file *.jar -r -path .| %{pscp -pw pilot12 $_.fullname pilot@pdext:/tmp/.}
+    Get-ChildItem -file *.jar -r -path . | ForEach-Object { pscp -pw pilot12 $_.fullname pilot@pdext:/tmp/. }
 
-    $targetDir = "$caHome/components/bi-adapter/bi-adapter-application/target"
-    #deployArtifact $targetDir "california-pd-backend-bus-app-${caVersion}.ear" "crm-ext"
-    $artifact = "{0}/{1}" -f $targetDir, "california-bi-adapter-app-${caVersion}.ear"
+    $targetDir = "$pdSiteHome/components/bi-adapter/bi-adapter-application/target"
+    #deployArtifact $targetDir "california-pd-backend-bus-app-${pdSiteVersion}.ear" "crm-ext"
+    $artifact = "{0}/{1}" -f $targetDir, "california-bi-adapter-app-${pdSiteVersion}.ear"
     pushToDev $artifact "pdext" "/tmp/server/crm-ext/deploy"
 }
 
 function doCrmBroker()
 {
-    $targetDir = "$caHome/components/pd-backend-bus/pd-backend-bus-application/target"
-    #deployArtifact $targetDir "california-pd-backend-bus-app-${caVersion}.ear" "broker"
-    $artifact = "{0}/{1}" -f $targetDir, "california-pd-backend-bus-app-${caVersion}.ear"
+    $targetDir = "$pdSiteHome/components/pd-backend-bus/pd-backend-bus-application/target"
+    #deployArtifact $targetDir "california-pd-backend-bus-app-${pdSiteVersion}.ear" "broker"
+    $artifact = "{0}/{1}" -f $targetDir, "california-pd-backend-bus-app-${pdSiteVersion}.ear"
     pushToDev $artifact "pdcore" "/tmp/server/broker/deploy"
 }
 
 function doCrmCore()
 {
     # Member of crm-core/deploy/california-crm-connector-app-2.0.15.0-SNAPSHOT.ear
-    $componentPaths = @("$caHome/components/crm-connector/crm-connector-application")
+    $componentPaths = @("$pdSiteHome/components/crm-connector/crm-connector-application")
 
     # Member of crm-core/deploy/california-pd-crm-adapter-app-2.0.15.0-SNAPSHOT.ear
-    $componentPaths += "$pd2Home/components/gms4/domain-model"
-    $componentPaths += "$pd2Home/components/connectors/crm-player-connector-api"
-    $componentPaths += "$pd2Home/components/connectors/crm-connector/crm-connector-sms"
-    $componentPaths += "$caHome/components/crm-connector"
-    $componentPaths += "$caHome/components/pd-crm-adapter"
+    $componentPaths += "$productHome/components/gms4/domain-model"
+    $componentPaths += "$productHome/components/connectors/crm-player-connector-api"
+    $componentPaths += "$productHome/components/connectors/crm-connector/crm-connector-sms"
+    $componentPaths += "$pdSiteHome/components/crm-connector"
+    $componentPaths += "$pdSiteHome/components/pd-crm-adapter"
 
     build $componentPaths
-    $targetDir = "$caHome/components/crm-connector/crm-connector-application/target"
-    deployArtifact $targetDir "california-crm-connector-app-${caVersion}.ear" "crm-core"
-    $artifact = "{0}/{1}" -f $targetDir, "california-crm-connector-app-${caVersion}.ear"
+    $targetDir = "$pdSiteHome/components/crm-connector/crm-connector-application/target"
+    deployArtifact $targetDir "${artifactid}-crm-connector-app-${pdSiteVersion}.ear" "crm-core"
+    $artifact = "{0}/{1}" -f $targetDir, "${artifactid}-crm-connector-app-${pdSiteVersion}.ear"
     pushToDev $artifact "pdcore" "/tmp/server/crm-core/deploy/."
 
-    $targetDir = "$caHome/components/pd-crm-adapter/pd-crm-adapter-application/target"
-    deployArtifact $targetDir "california-pd-crm-adapter-app-${caVersion}.ear" "crm-core"
-    $artifact = "{0}/{1}" -f $targetDir, "california-pd-crm-adapter-app-${caVersion}.ear"
+    $targetDir = "$pdSiteHome/components/pd-crm-adapter/pd-crm-adapter-application/target"
+    deployArtifact $targetDir "${artifactid}-pd-crm-adapter-app-${pdSiteVersion}.ear" "crm-core"
+    $artifact = "{0}/{1}" -f $targetDir, "${artifactid}-pd-crm-adapter-app-${pdSiteVersion}.ear"
     pushToDev $artifact "pdcore" "/tmp/server/crm-core/deploy"
 }
 function doPdCrmProcesses()
 {
     # Member of pd-crm-processes/deploy/california-pd-crm-processes-app-2.0.*-SNAPSHOT.ear
-    # $componentPaths = @("$pd2Home/components/pd-crm-processes/processes-commons")
-    $componentPaths = @("$pd2Home/components/pd-crm-processes")
-    # $componentPaths += "$pd2Home/components/pd-crm-processes/processor-core"
-    # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/closeaccount-process"
-    # $componentPaths += "$pd2Home/components/pd-crm-processes/processes/updateprofile-process"
+    # $componentPaths = @("$productHome/components/pd-crm-processes/processes-commons")
+    $componentPaths = @("$productHome/components/pd-crm-processes")
+    # $componentPaths += "$productHome/components/pd-crm-processes/processor-core"
+    # $componentPaths += "$productHome/components/pd-crm-processes/processes/closeaccount-process"
+    # $componentPaths += "$productHome/components/pd-crm-processes/processes/updateprofile-process"
 
-    # $componentPaths += "$caHome/components/pd-crm-processes/ca-processes"
-    # $componentPaths += "$caHome/components/pd-crm-processes/pd-crm-processes-camel-context"
-    $componentPaths += "$caHome/components/pd-crm-processes"
+    # $componentPaths += "$pdSiteHome/components/pd-crm-processes/ca-processes"
+    # $componentPaths += "$pdSiteHome/components/pd-crm-processes/pd-crm-processes-camel-context"
+    $componentPaths += "$pdSiteHome/components/pd-crm-processes"
 
-    # $componentPaths += "$caHome/components/batch"
+    # $componentPaths += "$pdSiteHome/components/batch"
 
     build $componentPaths
 
-    # california-pd-crm-processes-app-${caVersion}.ear
-    $targetDir = "$caHome/components/pd-crm-processes/pd-crm-processes-application/target"
-    deployArtifact $targetDir "california-pd-crm-processes-app-${caVersion}.ear" "pd-crm-processes"
-    $artifact = "{0}/{1}" -f $targetDir, "california-pd-crm-processes-app-${caVersion}.ear"
+    # california-pd-crm-processes-app-${pdSiteVersion}.ear
+    $targetDir = "$pdSiteHome/components/pd-crm-processes/pd-crm-processes-application/target"
+    deployArtifact $targetDir "${artifactid}-pd-crm-processes-app-${pdSiteVersion}.ear" "pd-crm-processes"
+    $artifact = "{0}/{1}" -f $targetDir, "${artifactid}-pd-crm-processes-app-${pdSiteVersion}.ear"
     pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy"
 
     # Batch california-batch-admin-application.ear
-    $targetDir = "$caHome/components/batch/batch-admin-application/target"
-    deployArtifact $targetDir "california-batch-admin-application.ear" "pd-crm-processes"
-    $artifact = "{0}/{1}" -f $targetDir, "california-batch-admin-application.ear"
+    $targetDir = "$pdSiteHome/components/batch/batch-admin-application/target"
+    deployArtifact $targetDir "${artifactid}-batch-admin-application.ear" "pd-crm-processes"
+    $artifact = "{0}/{1}" -f $targetDir, "${artifactid}-batch-admin-application.ear"
     pushToDev $artifact "pdcore" "/tmp/server/pd-crm-processes/deploy"
 }
 
-Write-Output "CA Version: ${caVersion}"
-if ($pd2)
+Write-Output "Site version: ${pdSiteVersion}"
+if ($product)
 {
-    Set-Location $env:PD2
+    Set-Location $env:PD_PRODUCT
     mvn -DskipTests clean install
 }
 
-if ($ca)
+if ($site)
 {
-    Set-Location $env:CA
+    Set-Location $env:PD_SITE
     mvn -DskipTests clean install
 }
 
-if ($broker) {doCrmBroker}
-if ($core) {doCrmCore}
-if ($ext)  {doCrmExt}
-if ($proc) {doPdCrmProcesses}
-if ($pdadmin) {doAdminFrontend}
-if ($restart -or $stop -or $start) {manageServers}
+if ($broker) { doCrmBroker }
+if ($core) { doCrmCore }
+if ($ext) { doCrmExt }
+if ($proc) { doPdCrmProcesses }
+if ($pdadmin) { doAdminFrontend }
+if ($restart -or $stop -or $start) { manageServers }
 
 Set-Location $whereWasI
