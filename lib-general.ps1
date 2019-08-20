@@ -1,10 +1,10 @@
 <#
     Author: Pete Jansz, IGT, June 2017
 #>
-New-Variable -Name AddressLineRegEx -Option ReadOnly -Value "^[a-zA-Z0-9 /.#-]{1,50}$"
-New-Variable -Name AddressLineNotRequiredRegEx -Option ReadOnly -Value "^[a-zA-Z0-9 /.#-]{0,50}$"
-New-Variable -Name EmailRegex "^[a-zA-Z0-9.!£#$%&'^_`{}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
-New-Variable -Name LastnameRegEx -Option ReadOnly -Value "^[A-Za-z\\xE1\\xE9\\xED\\xF3\\xFA\\xC1\\xC9\\xCD\\xD3\\xDA\\xF1\\xD1\\xDC\\xFC ,.'-]{1,30}$"
+$AddressLineRegEx = "^[a-zA-Z0-9 /.#-]{1,50}$"
+$AddressLineNotRequiredRegEx = "^[a-zA-Z0-9 /.#-]{0,50}$"
+$EmailRegex = "^[a-zA-Z0-9.!£#$%&'^_`{}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
+$LastnameRegEx = "^[A-Za-z\\xE1\\xE9\\xED\\xF3\\xFA\\xC1\\xC9\\xCD\\xD3\\xDA\\xF1\\xD1\\xDC\\xFC ,.'-]{1,30}$"
 $FirstnameRegEx = "^[A-Z ,.'-]{1,30}$"
 $FirstnameRegEx = "^[A-Za-z\\xE1\\xE9\\xED\\xF3\\xFA\\xC1\\xC9\\xCD\\xD3\\xDA\\xF1\\xD1\\xDC\\xFC ,.'-]{1,30}$"
 
