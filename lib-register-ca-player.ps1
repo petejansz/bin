@@ -284,7 +284,7 @@ function forgottenPassword( [string]$hostname, [int]$port, [string] $username ) 
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players/forgotten-password"
     $header = createHeader $hostname
-    
+
     class ForgottenPasswordDTO
     {
         [string]$emailAddress
@@ -319,21 +319,21 @@ function changePassword( [string]$hostname, [int]$port, [string]$oauthToken, $ch
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players/self/password"
     $header = createAuthHeader $oauthToken $hostname
-    
+
     class ChangePasswordDTO
     {
         [string]$oldPassword
         [string]$newPassword
-        
+
         ChangePasswordDTO( [string]$oldPassword, [string]$newPassword )
         {
             $this.oldPassword = $oldPassword
             $this.newPassword = $newPassword
         }
     }
-    
+
     $requestBody = [ChangePasswordDTO]::new( $chpwd, $newpwd ) | ConvertTo-Json
-    doPutPost $uri "PUT" $requestBody $header    
+    doPutPost $uri "PUT" $requestBody $header
 }
 
 function resetPassword( [string]$hostname, [int]$port, [string]$newpwd, [string]$oneTimeToken ) # 204 no content
@@ -341,7 +341,7 @@ function resetPassword( [string]$hostname, [int]$port, [string]$newpwd, [string]
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v2/players/reset-password"
     $header = createHeader $hostname
-    
+
     class ResetPasswordDTO
     {
         [string] $newPassword
@@ -429,21 +429,43 @@ function lockService( [string]$hostname, [int]$port, [string]$oauthToken, [boole
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/self/lock-service"
     $header = createAuthHeader $oauthToken $hostname
-    
+
     class LockServiceDTO
     {
         [boolean]$lockPlayer
         [string]$reason
-        
+
         LockServiceDTO( [boolean]$lockPlayer, [string]$reason )
         {
             $this.lockPlayer = $lockPlayer
             $this.reason = $reason
         }
     }
-    
+
     $requestBody = [LockServiceDTO]::new( $lock, $reason ) | ConvertTo-Json
-    doPutPost $uri "PUT" $requestBody $header        
+    doPutPost $uri "PUT" $requestBody $header
+}
+
+function logout( [string]$hostname, [int]$port, [string]$oauthToken )
+{
+    $baseUri = createUriBase $hostname $port
+    $uri = "${baseUri}/api/v1/oauth/logout"
+    $header = createAuthHeader $oauthToken $hostname
+
+    class LogoutDTO
+    {
+        [string]$token
+        [string]$tokenType
+
+        LogoutDTO( [string]$token )
+        {
+            $this.token = $token
+            $this.tokenType = "OAuth"
+        }
+    }
+
+    $requestBody = [LogoutDTO]::new( $oauthToken ) | ConvertTo-Json
+    doPutPost $uri "DELETE" $requestBody $header
 }
 
 function execRestRegisterUser( [string]$hostname, [int]$port, [string] $jsonBody ) # response

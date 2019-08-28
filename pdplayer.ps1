@@ -11,6 +11,7 @@ param
     [string]$newpwd,
     [string]$logintoken,
     [string]$lock,
+    [switch]$logout,
     [string]$username,
     [string]$u,
     [string]$password = "Password1",
@@ -68,6 +69,7 @@ function showHelp()
     Write-Host "  -getprofile                           -u[sername] <username>"
     Write-Host "  -updateprofile            <json-file> -u[sername] <username>"
 
+    Write-Host "  -logout           # Logout after operation"
     Write-Host "  -logintoken <username>"
     Write-Host "  -lock <reason>                        -u[sername] <username>"
     Write-Host "  -p[assword] <password default=${password}>"
@@ -81,17 +83,25 @@ function showHelp()
     exit 1
 }
 
-if ($help) {showHelp}
-if (-not ($h -or $hostname)) {showHelp}
+if ($help) { showHelp }
+if (-not ($h -or $hostname)) { showHelp }
 
 . lib-register-ca-player.ps1
+
+function doLogout( [string]$hostname, [int]$port, [string]$oauthToken )
+{
+    if ( $logout )
+    {
+        logout $hostname $port $oauthToken
+    }
+}
 
 $response = $null
 try
 {
-    if ($h) {$hostname = $h}
-    if ($p) {$password = $p}
-    if ($u) {$username = $u}
+    if ($h) { $hostname = $h }
+    if ($p) { $password = $p }
+    if ($u) { $username = $u }
 
     if ($activate)
     {
@@ -107,49 +117,54 @@ try
     }
     elseif ($chpwd)
     {
-        
+
         $token = login $hostname $port $username $chpwd
         changePassword $hostname $port $token $chpwd $newpwd
+        doLogout $hostname $port $token
+        doLogout $hostname $port $token
     }
     elseif ($lock)
     {
-        if (-not($username)) {showHelp}
+        if (-not($username)) { showHelp }
         $token = login $hostname $port $username $password
         lockService $hostname $port $token $true $lock
+        doLogout $hostname $port $token
     }
     elseif ($logintoken)
     {
-        if (-not($logintoken)) {showHelp}
+        if (-not($logintoken)) { showHelp }
         $username = $logintoken
-        login $hostname $port $username $password
+        $token = login $hostname $port $username $password
     }
     elseif ($unlock)
     {
-        if (-not($username)) {showHelp}
+        if (-not($username)) { showHelp }
         $token = login $hostname $port $username $password
         lockService $hostname $port $token $false $unlock
+        doLogout $hostname $port $token
     }
     elseif ($emailavailable)
     {
-        if (-not($emailavailable)) {showHelp}
+        if (-not($emailavailable)) { showHelp }
         $username = $emailavailable
         isEmailnameAvailable $hostname $port $username
     }
     elseif ($forgotpassword)
     {
-        if (-not($forgotpassword)) {showHelp}
+        if (-not($forgotpassword)) { showHelp }
         $username = $forgotpassword
         forgottenPassword $hostname $port $username
     }
     elseif ($resendActivationMail)
     {
-        if (-not($username)) {showHelp}
+        if (-not($username)) { showHelp }
         $token = login $hostname $port $username $password
         reqSendActivationMail $hostname $port $token
+        doLogout $hostname $port $token
     }
     elseif ($resetpwd)
     {
-        if (-not($newpwd)) {showHelp}
+        if (-not($newpwd)) { showHelp }
         $oneTimeToken = $resetpwd
         resetPassword $hostname $port $newpwd $oneTimeToken
     }
@@ -157,55 +172,64 @@ try
     {
         $token = login $hostname $port $username $password
         getAttributes $hostname $port $token
+        doLogout $hostname $port $token
     }
     elseif ($getcommprefs)
     {
         $token = login $hostname $port $username $password
         execRestGetComPrefs $hostname $port $token
+        doLogout $hostname $port $token
     }
     elseif ($updatecommprefs)
     {
         $jsonBody = Get-Content $updatecommprefs
         $token = login $hostname $port $username $password
         execRestUpdateComPrefs $hostname $port $token $jsonBody
+        doLogout $hostname $port $token
     }
     elseif ($getnotificationsprefs)
     {
         $token = login $hostname $port $username $password
         execRestGetNotificationsPrefs $hostname $port $token
+        doLogout $hostname $port $token
     }
     elseif ($updatenotificationsprefs)
     {
         $jsonBody = Get-Content $updatenotificationsprefs
         $token = login $hostname $port $username $password
         execRestUpdateNotificationsPrefs $hostname $port $token $jsonBody
+        doLogout $hostname $port $token
     }
     elseif ($getpersonalinfo)
     {
         $token = login $hostname $port $username $password
         getPersonalInfo $hostname $port $token
+        doLogout $hostname $port $token
     }
     elseif ($updatepersonalinfo)
     {
         $jsonBody = Get-Content $updatepersonalinfo
         $token = login $hostname $port $username $password
         execRestUpdatePersonalInfo $hostname $port $token $jsonBody
+        doLogout $hostname $port $token
     }
     elseif ($getprofile)
     {
         $token = login $hostname $port $username $password
         execRestGetProfile $hostname $port $token
+        doLogout $hostname $port $token
     }
     elseif ($updateprofile)
     {
         $jsonBody = Get-Content $updateprofile
         $token = login $hostname $port $username $password
         execRestUpdateProfile $hostname $port $token $jsonBody
+        doLogout $hostname $port $token
     }
     elseif ($update)
     {
         $csvfile = $update
-        $player = import-csv $update | Where-Object {$_.PlayerEmail -eq $username}
+        $player = Import-Csv $update | Where-Object { $_.PlayerEmail -eq $username }
 
         $result = update $hostname $port $player $password
         Write-Host "Updated: $username : $result"
@@ -227,9 +251,9 @@ try
 
             if ( $reg -match "\.csv$" )
             {
-                $csvfile = resolve-path $reg
-                $players = import-csv $csvfile
-                $player = $players | Where-Object {$_.PlayerEmail -eq $username}
+                $csvfile = Resolve-Path $reg
+                $players = Import-Csv $csvfile
+                $player = $players | Where-Object { $_.PlayerEmail -eq $username }
                 $registerUserDTO = create_registerUserDTO $player $password
                 $json = ( $registerUserDTO | ConvertTo-Json -depth 4 ) -replace 'null', ''
             }
@@ -260,7 +284,7 @@ try
                 if ($null -ne $player)
                 {
                     $player.PlayerID = $xToken
-                    $players | export-csv $csvfile -notype -force
+                    $players | Export-Csv $csvfile -notype -force
                     Write-Host ($username.ToLower() + " xToken: $xToken")
                 }
             }
