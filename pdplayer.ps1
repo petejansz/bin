@@ -90,9 +90,9 @@ if (-not ($h -or $hostname)) { showHelp }
 
 function doLogout( [string]$hostname, [int]$port, [string]$oauthToken )
 {
-    if ( $logout )
+    if ( $logout -and $oauthToken )
     {
-        logout $hostname $port $oauthToken
+        logout $hostname $port $oauthToken | Out-Null
     }
 }
 
@@ -120,7 +120,6 @@ try
 
         $token = login $hostname $port $username $chpwd
         changePassword $hostname $port $token $chpwd $newpwd
-        doLogout $hostname $port $token
         doLogout $hostname $port $token
     }
     elseif ($lock)
