@@ -77,7 +77,14 @@ if (-not ($pdSiteHome -and (Test-Path $pdSiteHome )))
 [xml]$pom = Get-Content $pdSiteHome/pom.xml
 $pdSiteVersion = $pom.project.version
 $artifactid = $pom.project.artifactId # e.g., california, njs, the prefix of ear, war filename.
-$prodVersion = $pom.project.properties.'product.version'
+# if ($pom.project.properties.'product.version')
+# {
+#     $prodVersion = $pom.project.properties.'product.version'
+# }
+# elseif ($pom.project.properties.'pd.version')
+# {
+#     $prodVersion = $pom.project.properties.'pd.version'
+# }
 
 if (-not ($productHome -and (Test-Path $productHome )))
 {
