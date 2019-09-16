@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Pete Jansz
 // Generate SQL update script file for
 

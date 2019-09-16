@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * ESA monitor log file processor. Parse infile, produce JSON, CSV to stdout, file.
  * Author: Pete Jansz

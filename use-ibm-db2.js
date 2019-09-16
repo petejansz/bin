@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // NodeJS IBM DB2 SQL client query tool.
 // Pete Jansz, Oct 2017
 

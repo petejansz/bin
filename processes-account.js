@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
   NodeJS command-line interface to pd-crm-processess account (activate or close), add-note.
   Author: Pete Jansz

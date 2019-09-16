@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // https://www.npmjs.com/package/xml2js
 
 var fs = require( "fs" )

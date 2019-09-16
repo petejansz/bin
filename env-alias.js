@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Environment alias mapper. Map/search for proto://hostname
  * Pete Jansz

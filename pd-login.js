@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
   NodeJS command-line interface to OAuth login, return an oauth token, using axios, output stream
   Author: Pete Jansz

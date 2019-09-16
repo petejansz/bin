@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Spawn (run a program), wait for completion, write result to stdout/stderr.
  */

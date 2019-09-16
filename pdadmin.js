@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
   NodeJS CLI to pd2-admin REST API.
   Author: Pete Jansz 2017
