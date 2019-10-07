@@ -29,11 +29,11 @@ description += '  --api SEARCH/UPDATES:\n'
 description += '        actacct  <pers-info-file> --playerid <pid> | -u <username> # Activate account\n'
 description += '        closeacct                 --playerid <pid> | -u <username> # Close account\n'
 description += '        mknote                    --playerid <pid> | -u <username>\n'
-description += '        search   --<city|state|zipcode|email|firstname|lastname>\n'
-description += '        services --activate | --suspend --serviceids sid,sid --playerid <pid> | -u <username>\n'
+description += '        search   --< city | state | zipcode | email | firstname | lastname >\n'
+description += '        services --svcstate < active | suspended | preactive > --serviceids sid,sid --playerid <pid> | -u <username>\n'
 
 program
-    .version( '1.0.0' )
+    .version( '1.1.0' )
     .description( description )
     .usage( 'ARGS' )
     .option( '--api < name >', 'REST API path-name' )
@@ -49,8 +49,7 @@ program
     .option( '--lastname [lastname]', 'Last name' )
     .option( '--playerid [playerid]', 'PlayerId', parseInt )
     .option( '--serviceids <number,number>', 'CSV service ids', commanderCsvList )
-    .option( '--activate', 'Activate services' )
-    .option( '--suspend', 'Suspend services' )
+    .option( '--svcstate [ preactive | active | suspended ]', 'Pre-activate or activate or suspend services' )
     .option( '-u, --username [username]', 'Username' )
     .option( '-v, --verbose', 'Verbose response' )
     .parse( process.argv )
@@ -89,7 +88,6 @@ async function main()
         {
             var personalInfo = JSON.parse( fs.readFileSync( program.file ).toString().trim() )
             personalInfo.reason = 'Activate account.'
-            // pd2admin.activateAccount( pdAdminSystem, personalInfo.id, personalInfo, commonResponseHandler )
         }
         else if ( program.api == 'closeacct' && playerid )
         {
@@ -135,11 +133,12 @@ async function main()
         {
             var services = { playerId: playerid }
 
-            if ( program.activate || program.suspend )
+            if ( program.svcstate )
             {
-                if ( program.serviceids && program.serviceids.length === 2 )
+                if ( program.svcstate.match( /^active$|^preactive$|^suspended$/ )
+                    && program.serviceids && program.serviceids.length === 2 )
                 {
-                    services.activate = program.activate ? 'activate' : 'suspend'
+                    services.svcstate = program.svcstate
                     services.serviceIds = program.serviceids
                 }
                 else
