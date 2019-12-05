@@ -74,8 +74,8 @@ if (-not $xmlChanged )
 if ( $configXml -and $update -and $xmlChanged )
 {
     backup-file $configFile
-    Over-write original config file:
-    $configXml.Save( $configFilename )
+    #Over-write original config file:
+    $configXml.Save( $configFile )
     $exitCode = 0
 }
 
