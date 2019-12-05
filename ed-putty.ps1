@@ -63,6 +63,15 @@ foreach ($connection in $configXml.selectNodes( "//connection" ))
         $xmlChanged = $true
         $connection.login.password = $newpassword
     }
+
+    foreach ($cmd in $connection.command.command3)
+    {
+        if ( $cmd -ceq $oldpassword )
+        {
+            $xmlChanged = $true
+            $connection.command.command3 = $newpassword
+        }
+    }
 }
 
 if (-not $xmlChanged )
