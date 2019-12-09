@@ -5,12 +5,47 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "PowerShell Launch ",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${workspaceFolder}/",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "PowerShell Launch Current File w/Args Prompt",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${file}",
+            "args": [
+                "${command:SpecifyScriptArgs}"
+            ],
+            "cwd": "${file}"
+        },
+        {
+            "name": "PowerShell Launch Current File",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${file}",
+            "args": [],
+            "cwd": "${file}"
+        },
+        {
+            "name": "PowerShell Launch Current File in Temporary Console",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": "${file}",
+            "args": [],
+            "cwd": "${file}",
+            "createTemporaryIntegratedConsole": true
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "pdadmin.js",
             "program": "${workspaceFolder}/pdadmin.js",
             "args": [
-                "--host", "dev", "--api", "services", "--playerid", "1000006385", "--activate",  "--serviceids", "11971,11972"
+                "--host", "localhost", "--api", "services", "--playerid", "1000006385", "--svcstate", "activate",  "--serviceids", "11983,11984"
             ]
         },
     {
