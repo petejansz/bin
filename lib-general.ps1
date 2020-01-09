@@ -225,6 +225,12 @@ function get-ipv4InetAddress()
     return (Test-Connection -ComputerName $env:computername -count 1).IPV4Address.ipaddressTOstring
 }
 
+function db2ExportDate( [string]$exportDate )
+{
+    $yr, $mo, $dom = $exportDate.split('-')[0, 1, 2]
+    return "${yr}-${mo}-${dom}"
+}
+
 function dateToLong( [string]$yyyymmdd )
 {
     <#
