@@ -5,6 +5,7 @@
 
 param
 (
+    [string]    $putty_file = "$env:USERPROFILE\apps\PuttyCM\putty-cm.dat",
     [string]    $oldpassword,
     [string]    $newpassword,
     [string]    $gateway,
@@ -26,17 +27,19 @@ trap [Exception]
     Set-Location $whereWasI
 }
 
-$configFile = Get-ChildItem "$env:USERPROFILE\apps\PuttyCM\putty-cm.dat"
+$configFile = Get-ChildItem $putty_file
 $ScriptName = $MyInvocation.MyCommand.Name
 
 function showHelp()
 {
+    $default_putty_file = "$env:USERPROFILE\apps\PuttyCM\putty-cm.dat"
     Write-Host "For a given gateway, change password in putty-cm.dat file"
     Write-Host "Only update config file, write xml to stdout if config xml changed"
     Write-Host "USAGE: $ScriptName [option] -gateway < rengw1 | rengw2 | rengw3 > -oldpassword <oldpassword> -newpassword <newpassword>"
     Write-Host "  [option]"
+    Write-Host "      -putty_file default=${default_putty_file}"
     Write-Host "      -stdout     # Write XML to stdout"
-    Write-Host ("      -update     # Backup, update (overwrite) {0}" -f $configFile.FullName )
+    Write-Host ("      -update     # Backup, update (overwrite) {0}" -f $default_putty_file )
     exit $exitCode
 }
 
@@ -47,7 +50,7 @@ function backup-file( $file )
     Copy-Item $file.FullName $backupfilename
 }
 
-if ( $h -or $help )  { showHelp }
+if ( $h -or $help ) { showHelp }
 if ( -not $gateway ) { showHelp }
 if ( $gateway -cnotmatch "^rengw[1-3]{1}$") { showHelp }
 if ( -not $oldpassword ) { showHelp }
@@ -64,12 +67,12 @@ foreach ($connection in $configXml.selectNodes( "//connection" ))
         $connection.login.password = $newpassword
     }
 
-    foreach ($cmd in $connection.command.command3)
+    foreach ($node in $connection.command.ChildNodes)
     {
-        if ( $cmd -ceq $oldpassword )
+        if ( $node.Value -ceq $oldpassword )
         {
             $xmlChanged = $true
-            $connection.command.command3 = $newpassword
+            $node.Value = $newpassword
         }
     }
 }
