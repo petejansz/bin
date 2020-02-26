@@ -15,9 +15,9 @@ program
     .usage( ' ARGS' )
     .option( '--csvfile <csvfile>', 'CSV file of player IDs' )
     .option( '--sqlt <sqlt>', 'SQL template file' )
-    .option( '--from <from>', '' )
-    .option( '--to <to>', '' )
-    .option( '--of [outputfile]', 'Write SQL to output file' )
+    // .option( '--from <from>', '' )
+    // .option( '--to <to>', '' )
+    // .option( '--of [outputfile]', 'Write SQL to output file' )
     .parse( process.argv )
 
 process.exitCode = 1
@@ -27,34 +27,28 @@ if ( !program.csvfile || !program.sqlt )
     program.help()
 }
 
-var playerIdList = fs.readFileSync( program.csvfile ).toString().trim().split( '\n' )
+var csvData = fs.readFileSync( program.csvfile ).toString().trim().split( '\n' )
 var sqlt = fs.readFileSync( program.sqlt ).toString().trim()
 
-generateSql( playerIdList, sqlt )
+generateSql( csvData, sqlt )
 process.exitCode = 0
 ///////////////////////////////////////////////////////////////////////////////
 
-function generateSql( playerIdList, sqlt )
+function generateSql( csvData, sqlt )
 {
-    // console.log( util.format( "-- Generated: %s", new Date() ) )
-    // console.log( "-- " + sqlt.description + "\n" )
+    fs.writeFileSync( program.of, util.format( '-- Generated: %s\n', new Date() ) )
 
-    for ( i = (program.from - 1); i < playerIdList.length; i++ )
+    for ( var i=0; i < csvData.length; i++ )
     {
-        if (i > program.to) {break}
-
-        var playerId = playerIdList[i].trim()
-
-        if ( isNaN( playerId ) )
-        {
-            continue
-        }
-
+        var obj = {}
+        var tokens = csvData[i].replace( /\"/g, '' ).trim().split( ',' )
+        obj.playerId = tokens[0]
+        obj.eventTypeName = tokens[1]
         var sqlCode = sqlt
-        sqlCode = sqlCode.replace( /\?/g, playerId ) + "\n\ncommit;\n"
-
-        //console.log( i+1 + ' / ' + playerIdList.length )
-        fs.writeFileSync( playerId + '.sql', sqlCode )
+        sqlCode = sqlCode.replace( /\{ExtContactKey\}/, obj.playerId ).replace( /\{EventTypeName\}/, obj.eventTypeName )
+        sqlCode += '\n'
+        console.log( util.format( '%s - %s', obj.playerId, obj.eventTypeName ) )
+        fs.appendFileSync( program.of, sqlCode )
     }
 }
 

@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "PowerShell Launch ",
+            "name": "Ed-putty.ps1",
             "type": "PowerShell",
             "request": "launch",
-            "script": "${workspaceFolder}/",
-            "args": [],
+            "script": "${workspaceFolder}/ed-putty.ps1",
+            "args": [" -stdout", "-gateway", "rengw2", "-putty_file", "C:/tmp/puttyfile.xml",  "-oldpassword", "agoo", "-newpassword", "Another-pwd123!"],
             "cwd": "${workspaceFolder}"
         },
         {
