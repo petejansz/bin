@@ -134,6 +134,7 @@ try
         if (-not($logintoken)) { showHelp }
         $username = $logintoken
         $token = login $hostname $port $username $password
+        Write-Output $token
     }
     elseif ($unlock)
     {
