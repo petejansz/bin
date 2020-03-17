@@ -5,39 +5,41 @@
 
 param
 (
-    [string]$activate,
-    [string]$csvfile,
-    [string]$chpwd,
-    [string]$newpwd,
-    [string]$logintoken,
-    [string]$lock,
-    [switch]$logout,
-    [string]$username,
-    [string]$u,
-    [string]$password = "Password1",
-    [string]$p = "Password1",
-    [string]$hostname,
-    [string]$h, # hostname
     [int]$port = 80,
-    [switch]$help,
-    [string]$reason,
+    [string]$activate,
+    [string]$chpwd,
+    [string]$csvfile,
     [string]$emailavailable,
     [string]$forgotpassword,
-    [switch]$getattributes,
-    [switch]$getcommprefs,
-    [switch]$getpersonalinfo,
-    [switch]$getprofile,
-    [switch]$getnotificationsprefs,
-    [switch]$resendActivationMail,
+    [string]$h, # hostname
+    [string]$hostname,
+    [string]$lock,
+    [string]$logintoken,
+    [string]$newpwd,
+    [string]$o,     # o[oauth] token
+    [string]$oauth,
+    [string]$p = "Password1",
+    [string]$password = "Password1",
+    [string]$reason,
+    [string]$reg,
     [string]$resetpwd,
+    [string]$u,     # u[username] name
     [string]$unlock,
+    [string]$update,
     [string]$updatecommprefs,
     [string]$updatenotificationsprefs,
     [string]$updatepersonalinfo,
     [string]$updateprofile,
-    [string]$update,
+    [string]$username,
     [string]$verify,
-    [string]$reg,
+    [switch]$getattributes,
+    [switch]$getcommprefs,
+    [switch]$getnotificationsprefs,
+    [switch]$getpersonalinfo,
+    [switch]$getprofile,
+    [switch]$help,
+    [switch]$logout,
+    [switch]$resendActivationMail,
     [switch]$show
 )
 
@@ -49,36 +51,37 @@ $scriptName = $MyInvocation.MyCommand.Name
 
 function showHelp()
 {
-    Write-Host "USAGE: ${ScriptName} [options] -h[ostname] <hostname> option"
+    Write-Host "USAGE: ${ScriptName} [options] -h[ostname] <hostname> [credentials] option"
+    Write-Host "Credentials:"
+    Write-Host "  -u[sername] <username> -p[assword] <password default=${password}> | -o[auth] <session-token>"
     Write-Host "Options:"
     Write-Host "  -activate <token>   "
     Write-Host "  -chpwd <oldPassword> -newpwd <newPassword> -u[sername] <username>"
-    Write-Host "  -emailavailable <emailname>"
-    Write-Host "  -forgotpassword <emailname>"
-    Write-Host "  -getattributes                        -u[sername] <username>"
+    Write-Host "  -emailavailable <username>"
+    Write-Host "  -forgotpassword <username>"
+    Write-Host "  -getattributes                        credentials"
 
-    Write-Host "  -getcommprefs                         -u[sername] <username>"
-    Write-Host "  -updatecommprefs          <json-file> -u[sername] <username>"
+    Write-Host "  -getcommprefs                         credentials"
+    Write-Host "  -updatecommprefs          <json-file> credentials"
 
-    Write-Host "  -getnotificationsprefs                -u[sername] <username>"
-    Write-Host "  -updatenotificationsprefs <json-file> -u[sername] <username>"
+    Write-Host "  -getnotificationsprefs                credentials"
+    Write-Host "  -updatenotificationsprefs <json-file> credentials"
 
-    Write-Host "  -getpersonalinfo                      -u[sername] <username>"
-    Write-Host "  -updatepersonalinfo       <json-file> -u[sername] <username>"
+    Write-Host "  -getpersonalinfo                      credentials"
+    Write-Host "  -updatepersonalinfo       <json-file> credentials"
 
-    Write-Host "  -getprofile                           -u[sername] <username>"
-    Write-Host "  -updateprofile            <json-file> -u[sername] <username>"
+    Write-Host "  -getprofile                           credentials"
+    Write-Host "  -updateprofile            <json-file> credentials"
 
-    Write-Host "  -logout           # Logout after operation"
-    Write-Host "  -logintoken <username>"
-    Write-Host "  -lock <reason>                        -u[sername] <username>"
-    Write-Host "  -p[assword] <password default=${password}>"
+    Write-Host "  -logout                  # Logout after operation"
+    Write-Host "  -logintoken     <username> -p[assword] <password>"
+    Write-Host "  -lock <reason>                        credentials"
     Write-Host "  -port <int default=${port}>"
     Write-Host "  -reg    <file.json|file.csv>          -u[sername] <username> [-show and exit]"
-    Write-Host "  -resendActivationMail                 -u[sername] <username>"
+    Write-Host "  -resendActivationMail                 credentials"
     Write-Host "  -resetpwd <oneTimeToken> -newpwd <newPassword> "
-    Write-Host "  -unlock <reason>                      -u[sername] <username>"
-    Write-Host "  -update <csv-file>                    -u[sername] <username> # email pref, lock/unlock"
+    Write-Host "  -unlock <reason>                      credentials"
+    Write-Host "  -update <csv-file>                    credentials # email pref, lock/unlock"
     Write-Host "  -verify <code>"
     exit 1
 }
@@ -96,12 +99,29 @@ function doLogout( [string]$hostname, [int]$port, [string]$oauthToken )
     }
 }
 
+function get-sessionToken()
+{
+    $sessionToken = ''
+
+    if ($oauth)
+    {
+        $sessionToken = $oauth
+    }
+    elseif ($username)
+    {
+        $sessionToken = login $hostname $port $username $password
+    }
+
+    return $sessionToken
+}
+
 $response = $null
 try
 {
     if ($h) { $hostname = $h }
     if ($p) { $password = $p }
     if ($u) { $username = $u }
+    if ($o) { $oauth = $o }
 
     if ($activate)
     {
@@ -117,15 +137,13 @@ try
     }
     elseif ($chpwd)
     {
-
         $token = login $hostname $port $username $chpwd
         changePassword $hostname $port $token $chpwd $newpwd
         doLogout $hostname $port $token
     }
     elseif ($lock)
     {
-        if (-not($username)) { showHelp }
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         lockService $hostname $port $token $true $lock
         doLogout $hostname $port $token
     }
@@ -133,13 +151,12 @@ try
     {
         if (-not($logintoken)) { showHelp }
         $username = $logintoken
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         Write-Output $token
     }
     elseif ($unlock)
     {
-        if (-not($username)) { showHelp }
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         lockService $hostname $port $token $false $unlock
         doLogout $hostname $port $token
     }
@@ -151,14 +168,12 @@ try
     }
     elseif ($forgotpassword)
     {
-        if (-not($forgotpassword)) { showHelp }
         $username = $forgotpassword
         forgottenPassword $hostname $port $username
     }
     elseif ($resendActivationMail)
     {
-        if (-not($username)) { showHelp }
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         reqSendActivationMail $hostname $port $token
         doLogout $hostname $port $token
     }
@@ -170,59 +185,59 @@ try
     }
     elseif ($getattributes)
     {
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         getAttributes $hostname $port $token
         doLogout $hostname $port $token
     }
     elseif ($getcommprefs)
     {
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         execRestGetComPrefs $hostname $port $token
         doLogout $hostname $port $token
     }
     elseif ($updatecommprefs)
     {
         $jsonBody = Get-Content $updatecommprefs
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         execRestUpdateComPrefs $hostname $port $token $jsonBody
         doLogout $hostname $port $token
     }
     elseif ($getnotificationsprefs)
     {
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         execRestGetNotificationsPrefs $hostname $port $token
         doLogout $hostname $port $token
     }
     elseif ($updatenotificationsprefs)
     {
         $jsonBody = Get-Content $updatenotificationsprefs
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         execRestUpdateNotificationsPrefs $hostname $port $token $jsonBody
         doLogout $hostname $port $token
     }
     elseif ($getpersonalinfo)
     {
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         getPersonalInfo $hostname $port $token
         doLogout $hostname $port $token
     }
     elseif ($updatepersonalinfo)
     {
         $jsonBody = Get-Content $updatepersonalinfo
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         execRestUpdatePersonalInfo $hostname $port $token $jsonBody
         doLogout $hostname $port $token
     }
     elseif ($getprofile)
     {
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         execRestGetProfile $hostname $port $token
         doLogout $hostname $port $token
     }
     elseif ($updateprofile)
     {
         $jsonBody = Get-Content $updateprofile
-        $token = login $hostname $port $username $password
+        $token = get-sessionToken
         execRestUpdateProfile $hostname $port $token $jsonBody
         doLogout $hostname $port $token
     }
