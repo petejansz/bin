@@ -37,6 +37,7 @@ param
     [string]$verify,
     [switch]$getattributes,
     [switch]$getcommprefs,
+    [switch]$getnotifications,
     [switch]$getnotificationsprefs,
     [switch]$getpersonalinfo,
     [switch]$getprofile,
@@ -67,6 +68,8 @@ function showHelp()
 
     Write-Host "  -getcommprefs                         credentials"
     Write-Host "  -updatecommprefs          <json-file> credentials"
+
+    Write-Host "  -getnotifications                     credentials"
 
     Write-Host "  -getnotificationsprefs                credentials"
     Write-Host "  -updatenotificationsprefs <json-file> credentials"
@@ -177,7 +180,6 @@ try
     }
     elseif ($logintoken)
     {
-        if (-not($logintoken)) { showHelp }
         $username = $logintoken
         $token = get-sessionToken
         Write-Output $token
@@ -190,7 +192,6 @@ try
     }
     elseif ($emailavailable)
     {
-        if (-not($emailavailable)) { showHelp }
         $username = $emailavailable
         isEmailnameAvailable $hostname $port $username
     }
@@ -214,13 +215,13 @@ try
     elseif ($getattributes)
     {
         $token = get-sessionToken
-        getAttributes $hostname $port $token
+        get-it $hostname $port $token attributes
         doLogout $hostname $port $token
     }
     elseif ($getcommprefs)
     {
         $token = get-sessionToken
-        execRestGetComPrefs $hostname $port $token
+        get-it $hostname $port $token communication-preferences
         doLogout $hostname $port $token
     }
     elseif ($updatecommprefs)
@@ -230,10 +231,16 @@ try
         execRestUpdateComPrefs $hostname $port $token $jsonBody
         doLogout $hostname $port $token
     }
+    elseif ($getnotifications)
+    {
+        $token = get-sessionToken
+        get-it $hostname $port $token notifications
+        doLogout $hostname $port $token
+    }
     elseif ($getnotificationsprefs)
     {
         $token = get-sessionToken
-        execRestGetNotificationsPrefs $hostname $port $token
+        get-it $hostname $port $token notifications-preferences
         doLogout $hostname $port $token
     }
     elseif ($updatenotificationsprefs)
@@ -246,7 +253,7 @@ try
     elseif ($getpersonalinfo)
     {
         $token = get-sessionToken
-        getPersonalInfo $hostname $port $token
+        get-it $hostname $port $token personal-info
         doLogout $hostname $port $token
     }
     elseif ($updatepersonalinfo)
@@ -259,7 +266,7 @@ try
     elseif ($getprofile)
     {
         $token = get-sessionToken
-        execRestGetProfile $hostname $port $token
+        get-it $hostname $port $token profile
         doLogout $hostname $port $token
     }
     elseif ($updateprofile)
