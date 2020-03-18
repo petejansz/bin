@@ -7,6 +7,9 @@ param
 (
     [int]$port = 80,
     [string]$activate,
+    [Parameter(Mandatory = $false)]
+    [ValidateSet('attributes', 'communication-preferences', 'notifications', 'notifications-preferences', 'personal-info', 'profile', IgnoreCase = $false)]
+    [array] $api,
     [string]$chpwd,
     [string]$csvfile,
     [string]$emailavailable,
@@ -56,6 +59,7 @@ function showHelp()
     Write-Host "  -u[sername] <username> -p[assword] <password default=${password}> | -o[auth] <session-token>"
     Write-Host "Options:"
     Write-Host "  -activate <token>   "
+    Write-Host "  -api '@(attributes,communication-preferences,notifications,notifications-preferences,personal-info,profile)"
     Write-Host "  -chpwd <oldPassword> -newpwd <newPassword> -u[sername] <username>"
     Write-Host "  -emailavailable <username>"
     Write-Host "  -forgotpassword <username>"
@@ -133,6 +137,30 @@ try
         catch
         {
             Write-Output "Activation Exception: xToken = $devxToken"
+        }
+    }
+    elseif ($api)
+    {
+        $token = get-sessionToken
+        $contents = @()
+        foreach ($apiName in $api)
+        {
+            $response = get-it $hostname $port $token $apiName
+            $contents += $response.Content
+        }
+
+        if ($contents.Length -gt 1)
+        {
+            Write-Output "[`n"
+            for($i=0; $i -lt $contents.Length-1; $i++)
+            {
+                Write-Output ($contents[$i] + ",`n")
+            }
+            Write-Output ($contents[$contents.Length - 1] + "`n]")
+        }
+        else
+        {
+            $contents[0]
         }
     }
     elseif ($chpwd)
