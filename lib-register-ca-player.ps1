@@ -308,6 +308,23 @@ function execRestGetSelf( [string]$hostname, [int]$port, [string]$oauthToken, [s
     Invoke-WebRequest -uri $uri -Method GET -Headers $header
 }
 
+function get-it
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$True)]
+        [string] $hostname,
+        [Parameter(Mandatory = $True)]
+        [int] $port,
+        [Parameter(Mandatory = $true)]
+        [string] $oauthToken,
+        [Parameter(Mandatory=$true)]
+        [ValidateSet('attributes', 'communication-preferences', 'notifications', 'notifications-preferences', 'personal-info', 'profile', IgnoreCase = $false)]
+        [string] $apiName
+    )
+
+    return execRestGetSelf $hostname $port $oauthToken $apiName
+}
 function getPersonalInfo( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {
     $pathinfo = "personal-info"
