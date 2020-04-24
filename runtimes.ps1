@@ -2,10 +2,11 @@
     Report time-diff in seconds between adjacent log statements, statement(N+1 -N), e.g.,
 2018-06-23:06:33:28 login-archiver.sh: Archive pass: 95
 2018-06-23:06:37:37 login-archiver.sh: Archive pass: 96
-2018-06-23:06:41:43 login-archiver.sh: Archive pass: 97
-2018-06-23:06:45:27 login-archiver.sh: Archive pass: 98
-2018-06-23:06:49:18 login-archiver.sh: Archive pass: 99
-2018-06-23:06:53:11 login-archiver.sh: Archive pass: 100
+
+or DB2 history log:
+4-16-2020 05:10:28
+4-16-2020 05:10:30
+4-16-2020 05:10:33
 #>
 
 param
@@ -29,16 +30,34 @@ function showHelp()
     exit 1
 }
 
+function convertDB2HistoryTSToTime( [string] $db2HistoryTS )
+{
+    $tokens = $db2HistoryTS.Split()
+    $mo = $tokens[0].Split('-')[0]
+    $dy = $tokens[0].Split('-')[1]
+    $yr = $tokens[0].Split('-')[2]
+    $log4JDT = "{0}-{1}-{2} {3}" -f $yr, $mo, $dy, $tokens[1]
+    $time = convertLog4JDateToDateTime $log4JDT
+    return $time
+}
+
 if ($h -or $help) { showHelp }
 if ( -not($file) ) { showHelp }
 
-New-Variable -Name DateRegEx -Option ReadOnly -Value '^20[0-9]{2}-[0-9]{2}-[0-9]{2}'
+New-Variable -Name Log4JDateRegEx -Option ReadOnly -Value '^20[0-9]{2}-[0-9]{2}-[0-9]{2}'
 New-Variable -Name TimeRegEx -Option ReadOnly -Value '[0-9]{2}:[0-9]{2}:[0-9]{2}'
+New-Variable -Name DateFormat -Option ReadOnly -Value 'yyyy-MM-dd hh:mm:ss'
+New-Variable -Name DB2HistoryRegEx -Option ReadOnly -Value ('^[0-9]{2}-[0-9]{2}-[0-9]{4} ' + $TimeRegEx)
+
 $times = @() # Array of System.DateTime
 
 foreach ($line in (Get-Content $file))
 {
-    if ($line -match "${DateRegEx}.${TimeRegEx}")
+    if ($line -match "${DB2HistoryRegEx}")
+    {
+        $times += convertDB2HistoryTSToTime $line
+    }
+    elseif ($line -match "${Log4JDateRegEx}.${TimeRegEx}")
     {
         $times += convertLog4JDateToDateTime $line
     }
