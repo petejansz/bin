@@ -408,15 +408,25 @@ function myip()
 
 function hex2Dec( $hexValue )
 {
-    [int]$decValue = 0
+    <#
+    .DESCRIPTION
+    Convert string rep of hex number to int decimal number
+
+    .INPUTS
+    [string] hexValue
+
+    .OUTPUTS
+    [int] number
+    #>
+    [UInt64]$decValue = 0
 
     if ($hexValue -match "^0x.*")
     {
-        $decValue = [int] $hexValue
+        $decValue = [UInt64] $hexValue
     }
     else
     {
-        $decValue = [int] ("0x" + $hexValue)
+        $decValue = [UInt64] ("0x" + $hexValue)
     }
 
     return $decValue
@@ -427,14 +437,14 @@ function hex2dec2( $hexValue )
     return [Convert]::ToInt64( $hexValue, 16 )
 }
 
-function convertToBase( [int]$numValue, [int]$base )
+function convertToBase( [UInt64]$decValue, [int]$base )
 {
-    return [Convert]::ToString($numValue, $base)
+    return [Convert]::ToString($decValue, $base)
 }
 
-function convert2hex( $numValue )
+function dec2hex( $decValue )
 {
-    return convertToBase $numValue 16
+    return convertToBase $decValue 16
 }
 
 function strToHex( [string]$str )
@@ -455,9 +465,9 @@ function bytesToStr( $bytes )
     return $str
 }
 
-function convert2bin ( $numValue )
+function convert2bin ( $decValue )
 {
-    return convertToBase $numValue 2
+    return convertToBase $decValue 2
 }
 
 function validatePhonenumber( [string] $s )
