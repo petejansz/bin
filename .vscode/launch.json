@@ -5,15 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
-        "type": "PowerShell",
-        "request": "launch",
-        "name": "pdplayer.ps1",
-        "script": "${workspaceRoot}/pdplayer.ps1",
-        "args": [
-            "-h", "caapl.lotteryservices.com", "-port", "443", "-logintoken", "mansir@mailinator.com"
-        ],
-        "cwd": "${workspaceRoot}"
-    },
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [ "--delfile1", "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/tools/login-archiver/q1.del", "--delfile2", "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/tools/login-archiver/q2.del"]
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "pdplayer.ps1",
+            "script": "${workspaceRoot}/pdplayer.ps1",
+            "args": [
+                "-h",
+                "caapl.lotteryservices.com",
+                "-port",
+                "443",
+                "-logintoken",
+                "mansir@mailinator.com"
+            ],
+            "cwd": "${workspaceRoot}"
+        },
         {
             "name": "PowerShell Launch Current File w/Args Prompt",
             "type": "PowerShell",
@@ -47,36 +60,59 @@
             "name": "pdadmin.js",
             "program": "${workspaceFolder}/pdadmin.js",
             "args": [
-                "--host", "localhost", "--api", "services", "--playerid", "1000006385", "--svcstate", "activate",  "--serviceids", "11983,11984"
+                "--host",
+                "localhost",
+                "--api",
+                "services",
+                "--playerid",
+                "1000006385",
+                "--svcstate",
+                "activate",
+                "--serviceids",
+                "11983,11984"
             ]
         },
-    {
-        "type": "node",
-        "request": "launch",
-        "name": "esa-perf-monitor-report.js",
-        "program": "${workspaceFolder}/esa-perf-monitor-report.js",
-        "args": [
-            "--sort-desc", "avgResponseTimeMs",
-            "--stdout", "--infile", "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/environments/prod/perf/cappapp1-esa-monitor-ALL-ALL.log", "--outcsv", "cappapp1.csv"
-        ]
-    },
-    {
-        "type": "PowerShell",
-        "request": "launch",
-        "name": "rm-api-keys.ps1",
-        "script": "${workspaceRoot}/rm-api-keys.ps1",
-        "args": [
-            "-keyFile", "rm-keys.txt", "-configfile", "test.xml", "-stdout"
-           ],
-        "cwd": "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/install/sec-gateway-jboss5-container-install/src/main/env-config"
-    },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "esa-perf-monitor-report.js",
+            "program": "${workspaceFolder}/esa-perf-monitor-report.js",
+            "args": [
+                "--sort-desc",
+                "avgResponseTimeMs",
+                "--stdout",
+                "--infile",
+                "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/environments/prod/perf/cappapp1-esa-monitor-ALL-ALL.log",
+                "--outcsv",
+                "cappapp1.csv"
+            ]
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "rm-api-keys.ps1",
+            "script": "${workspaceRoot}/rm-api-keys.ps1",
+            "args": [
+                "-keyFile",
+                "rm-keys.txt",
+                "-configfile",
+                "test.xml",
+                "-stdout"
+            ],
+            "cwd": "C:/Users/pjansz/Documents/Projects/igt/pd/branches/california/install/sec-gateway-jboss5-container-install/src/main/env-config"
+        },
         {
             "type": "node",
             "request": "launch",
             "name": "pd-login.js",
             "program": "${workspaceFolder}/pd-login.js",
             "args": [
-                "-h", "mobile-cadev1", "-u", "mansir@mailinator.com", "-p", "Password1"
+                "-h",
+                "mobile-cadev1",
+                "-u",
+                "mansir@mailinator.com",
+                "-p",
+                "Password1"
             ],
             "cwd": "${workspaceFolder}"
         },
@@ -95,9 +131,11 @@
             "request": "launch",
             "name": "Launch NodeJS Program",
             "program": "${workspaceFolder}/ch-pd-service-status.js",
-            "args": [ "--csvfile", "C:/Users/pjansz/Documents/pd/sql/casa-11034/dev/result.csv",
-                "--sqlt", "C:/Users/pjansz/Documents/pd/sql/casa-11034/update-to-suspended.sql.js"
-
+            "args": [
+                "--csvfile",
+                "C:/Users/pjansz/Documents/pd/sql/casa-11034/dev/result.csv",
+                "--sqlt",
+                "C:/Users/pjansz/Documents/pd/sql/casa-11034/update-to-suspended.sql.js"
             ]
         }
     ]
