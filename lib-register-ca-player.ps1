@@ -12,6 +12,7 @@ $PWS_CHANNEL_ID = '2'
 
 $SystemId = '8'
 $SiteId = $CA_SITE_ID
+$DEFAULT_ESA_API_KEY = 'di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b'
 
 function createHeader( [string]$hostname )
 {
@@ -24,6 +25,15 @@ function createHeader( [string]$hostname )
         $clientId = $MOBILE_CLIENT_ID
     }
 
+    if ($env:ESA_API_KEY)
+    {
+        $esaApiKey = $env:ESA_API_KEY
+    }
+    else
+    {
+        $esaApiKey = $DEFAULT_ESA_API_KEY
+    }
+
     $header = @{                                       `
             'cache-control'  = 'no-cache'            ; `
             'content-type'   = 'application/json'    ; `
@@ -32,7 +42,7 @@ function createHeader( [string]$hostname )
             'x-channel-id'   = $channel              ; `
             'x-client-id'    = $clientId             ; `
             'x-clientip'     = (get-ipv4InetAddress) ; `
-            'x-esa-api-key'  = 'di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b' ; `
+            'x-esa-api-key'  = $esaApiKey            ; `
             'x-device-uuid'  = ('UUID-' + (get-ipv4InetAddress) ); `
     }
 
@@ -44,6 +54,15 @@ function createAuthHeader( [string]$oauthToken, [string]$hostname ) # @map
     if ($hostname -match "mobile")
     {$channel = $MOBILE_CHANNEL_ID}
 
+    if ($env:ESA_API_KEY)
+    {
+        $esaApiKey = $env:ESA_API_KEY
+    }
+    else
+    {
+        $esaApiKey = $DEFAULT_ESA_API_KEY
+    }
+
     $authHeader = @{                                      `
             'cache-control'  = 'no-cache'               ; `
             'content-type'   = 'application/json'       ; `
@@ -52,8 +71,8 @@ function createAuthHeader( [string]$oauthToken, [string]$hostname ) # @map
             'x-ex-system-id' = $SystemId                ; `
             'x-channel-id'   = $channel                 ; `
             'x-clientip'     = (get-ipv4InetAddress)    ; `
-            'x-esa-api-key'  = "di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b"; `
-            'x-device-uuid'  = ('UUID-' + (get-ipv4InetAddress));`
+            'x-esa-api-key'  = $esaApiKey               ; `
+            'x-device-uuid'  = ('UUID-' + (get-ipv4InetAddress)); `
     }
 
     return $authHeader

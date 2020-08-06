@@ -90,6 +90,8 @@ function showHelp()
     Write-Host "  -unlock <reason>                      credentials"
     Write-Host "  -update <csv-file>                    credentials # email pref, lock/unlock"
     Write-Host "  -verify <code>"
+    Write-Host "ENVIRONMENT:"
+    Write-Host "  ESA_API_KEY   # If defined else uses a default key."
     exit 1
 }
 
