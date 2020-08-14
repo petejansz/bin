@@ -177,6 +177,11 @@ function createUriBase( [string]$hostname, [int]$port )
     return $uriBase
 }
 
+function doGet([string]$uri, $header)
+{
+    return Invoke-WebRequest -Uri $uri -Method GET -Headers $header
+}
+
 function verifyCode( [string]$hostname, [int]$port, [string]$code )
 {
     <#
@@ -190,7 +195,7 @@ function verifyCode( [string]$hostname, [int]$port, [string]$code )
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/verify/${code}"
     $header = createHeader $hostname
-    return Invoke-WebRequest -uri $uri -Method GET -Headers $header
+    return doGet $uri $header
 }
 
 function isEmailnameAvailable( [string]$hostname, [int]$port, [string]$emailName ) # boolean
@@ -198,7 +203,7 @@ function isEmailnameAvailable( [string]$hostname, [int]$port, [string]$emailName
     $baseUri = createUriBase $hostname $port
     $uri = "${baseUri}/api/v1/players/available/${emailName}"
     $header = createHeader $hostname
-    $response = Invoke-WebRequest -uri $uri -Method GET -Headers $header
+    $response = doGet $uri $header
     ($response.Content -match "true")
 }
 
@@ -324,7 +329,7 @@ function execRestGetSelf( [string]$hostname, [int]$port, [string]$oauthToken, [s
     $uri = "${baseUri}/api/v1/players/self/${pathinfo}"
     $header = createAuthHeader $oauthToken $hostname
 
-    Invoke-WebRequest -uri $uri -Method GET -Headers $header
+    return doGet $uri $header
 }
 
 function get-it
