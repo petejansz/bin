@@ -10,9 +10,12 @@ var str_to_stream = require( 'string-to-stream' )
 var program = require( 'commander' )
 var igtCas = require( 'pete-lib/igt-cas' )
 
+var description = 'NodeJS CLI to login, return an oauth token.'
+description += '\n\n    ENVIRONMENT: ESA_API_KEY default=di9bJ9MPTXOZvEKAvd7CM8cRJ4Afo54b' + '\n'
+
 program
     .version( '0.0.1' )
-    .description( 'NodeJS CLI to login, return an oauth token.' )
+    .description( description )
     .usage( '-h <host> -u <username> -p <password>' )
     .option( '-h, --hostname <hostname>', 'Hostname' )
     .option( '-u, --username <username>', 'Username' )
