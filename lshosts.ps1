@@ -34,7 +34,7 @@ class HostClass
     [string] $IPAddress
     [string] $Description
 
-    HostClass($IPAddress, $name, $description)
+    HostClass($IPAddress, $name='', $description='')
     {
         $this.IPAddress = $IPAddress.trim()
         $this.name = $name.trim()
@@ -53,10 +53,14 @@ foreach ($line in (Get-Content $hostsFile))
 {
     if ($line -notmatch "^#|^$")
     {
-        $IPAddress, $name = [regex]::split($line.trim(), '\s+')[0]
-        $name = [regex]::split($line.trim(), '\s+')[1]
+        $IPAddress, $name = [regex]::split($line.trim(), '\s+')
+        if ($null -eq $IPAddress -or $null -eq $name)
+        {
+            continue
+        }
+
         $description = ''
-        if ($line -match '#')
+        if ($IPAddress -and $name -and $line -match '#')
         {
             $description = [regex]::split($line.trim(), '#')[1]
         }
