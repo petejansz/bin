@@ -275,8 +275,9 @@ function execOAuthTokens ( [string]$hostname, [int]$port, [string]$authCode ) # 
 
 function login( [string]$hostname, [int]$port, [string]$username, [string]$password ) # [string]$sessionToken
 {
-    $authCode = execRestOauthLogin $hostname $port $username $password
-    $sessionToken = execOAuthTokens $hostname $port $authCode
+    # $authCode = execRestOauthLogin $hostname $port $username $password
+    # $sessionToken = execOAuthTokens $hostname $port $authCode
+    $sessionToken = pd-login.js --hostname $hostname --username $username --password $password
     return $sessionToken
 }
 
@@ -338,7 +339,7 @@ function get-it
     param (
         [Parameter(Mandatory=$True)]
         [string] $hostname,
-        [Parameter(Mandatory = $True)]
+        [Parameter(Mandatory = $False)]
         [int] $port,
         [Parameter(Mandatory = $true)]
         [string] $oauthToken,
@@ -347,7 +348,11 @@ function get-it
         [string] $apiName
     )
 
-    return execRestGetSelf $hostname $port $oauthToken $apiName
+    # return execRestGetSelf $hostname $port $oauthToken $apiName
+    $real_script = "$env:USERPROFILE\Documents\Projects\igt\test-scripts\py-player-self.py"
+    $response = & $real_script --hostname $hostname --oauth $oauthToken --api $apiName
+
+    return $response
 }
 function getPersonalInfo( [string]$hostname, [int]$port, [string]$oauthToken ) # response
 {

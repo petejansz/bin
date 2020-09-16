@@ -148,25 +148,13 @@ try
     {
         $token = get-sessionToken
         $contents = @()
+
         foreach ($apiName in $api)
         {
-            $response = get-it $hostname $port $token $apiName
-            $contents += $response.Content
+            $contents += pd-player-self.js --hostname $hostname --oauth $token --api $apiName | ConvertFrom-Json
         }
 
-        if ($contents.Length -gt 1)
-        {
-            Write-Output "[`n"
-            for($i=0; $i -lt $contents.Length-1; $i++)
-            {
-                Write-Output ($contents[$i] + ",`n")
-            }
-            Write-Output ($contents[$contents.Length - 1] + "`n]")
-        }
-        else
-        {
-            $contents[0]
-        }
+        $contents | ConvertTo-Json
     }
     elseif ($chpwd)
     {
