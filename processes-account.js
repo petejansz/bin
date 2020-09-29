@@ -11,10 +11,11 @@ var processes = require( 'pete-lib/processes-lib' )
 
 program
     .version( '0.0.1' )
-    .description( 'CLI to pd-crm-processess account (activate or close), add-note' )
-    .usage( ' -<activate|close> -i <playerid> -h <hostname>' )
+    .description( 'CLI to pd-crm-processess account' )
+    .usage( 'Option -i <playerid> -h <hostname>' )
     .option( '--activate', 'Activate account' )
     .option( '--close', 'Close account' )
+    .option( '--dlvsync', 'DLV Sync' )
     .option( '-i, --playerid <playerid>', 'PlayerID', parseInt )
     .option( '--newpwd [newpwd]', 'New password' )
     .option( '--chpwd <oldPassword>', 'Change password' )
@@ -24,7 +25,7 @@ program
 
 process.exitCode = 1
 
-if ( !program.playerid || !program.hostname || !( program.activate || program.close || program.note || program.chpwd ) )
+if ( !program.playerid || !program.hostname || !( program.activate || program.close || program.note || program.chpwd || program.dlvsync ) )
 {
     program.help()
 }
@@ -61,6 +62,14 @@ else if ( program.chpwd )
 
     request.oldPassword = program.chpwd
     request.newPassword = program.newpwd
+}
+else if ( program.dlvsync )
+{
+    restPath += 'dlvsync'
+    request = processes.createProcessesRequest()
+    request.playerId = program.playerid
+    moreHeaders['x-tx-id'] = request.transactionIdBase
+    moreHeaders['x-tx-time'] = request.transactionTime
 }
 else if ( program.note )
 {
