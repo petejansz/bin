@@ -56,6 +56,7 @@ function go-ssh([string]$env, [string]$hostname, [int]$node = 1)
     {
         $gw = $null
         $username = 'pilot'
+        $envname = $env
     }
     elseif ($env -match "apl")
     {
@@ -71,14 +72,27 @@ function go-ssh([string]$env, [string]$hostname, [int]$node = 1)
         $node = 2
     }
 
-    if ($hostname -match "db")
+    if ($hostname -match "db" -and $env -eq 'dev')
+    {
+        $username = 'b2cinst1'
+    }
+    elseif ($hostname -match "db" -and $env -notmatch 'dev')
     {
         $username = 'gtkinst1'
     }
 
     $sshHost = "{0}{1}{2}{3}" -f $site, $envname, $hostname, $node
     $Host.ui.RawUI.WindowTitle = $sshHost
-    ssh -t -l $gwusername $gw "ssh -l $username $sshHost"
+
+    if ($gw)
+    {
+        ssh -t -l $gwusername $gw "ssh -l $username $sshHost"
+    }
+    else
+    {
+        ssh -l $username $sshHost
+    }
+
     $Host.ui.RawUI.WindowTitle = "Powershell"
 }
 
