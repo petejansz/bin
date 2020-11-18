@@ -86,7 +86,7 @@ function go-ssh([string]$env, [string]$hostname, [int]$node = 1)
 
     if ($gw)
     {
-        ssh -t -l $gwusername $gw "ssh -l $username $sshHost"
+        ssh -A -t -l $gwusername $gw ssh -A -t -l $username $sshHost sudo su
     }
     else
     {

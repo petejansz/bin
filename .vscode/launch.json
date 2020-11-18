@@ -4,6 +4,17 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    {
+        "name": "NodeJS Launch Program",
+        "program": "${workspaceFolder}/pdadmin.js",
+        "request": "launch",
+        "args": ["--host", "cat2", "--api", "mknote", "-u", "mansir@mailinator.com"],
+        "env": {"CA_CAT2_PDADMIN_TOKEN" : "OH9W6P8CRANTB7R5GRIMM6DTXD9CI4"},
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "type": "pwa-node"
+    },
         {
             "name": "PowerShell Launch Script",
             "type": "PowerShell",
