@@ -1,3 +1,10 @@
+#! /usr/bin/python
+
+"""
+    Purpose: Print directory perms, owner, group from default . or --path to root
+    Author: Pete Jansz
+    V1.0.0.0: 2020-12-11
+"""
 
 import sys, string, os, io, subprocess
 from subprocess import Popen, PIPE
@@ -6,6 +13,7 @@ from optparse import OptionParser
 parser = OptionParser()
 
 def parse_cli_args():
+    parser.description = r"Print directory perms, owner, group from default . or --path to root"
     parser.add_option('--path', action='store', help='Directory path', type=str, default='.', dest='path', metavar='FILE')
     return parser.parse_args()
 
