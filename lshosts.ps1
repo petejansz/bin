@@ -1,6 +1,6 @@
 param
 (
-    [string]    $hostsFile = 'C:\Windows\System32\drivers\etc\hosts',
+    [string]    $hostsFile = "$env:SystemRoot\System32\drivers\etc\hosts",
     [switch]    $help,
     [switch]    $h
 )
@@ -22,7 +22,7 @@ function showHelp()
 {
     Write-Output "USAGE: $ScriptName [option]"
     Write-Output "  option"
-    Write-Output "    -hostsFile [filename] # Default='C:\Windows\System32\drivers\etc\hosts'"
+    Write-Output "    -hostsFile [filename] # Default=$hostsFile"
     exit 1
 }
 
