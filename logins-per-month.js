@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 
+// Use with \Projects\igt\pd\branches\sql\list-contract_identity, last login_date.sql'
+//  1000006528,2020-12-04 11:43:33.148000
+//  1000006529,2020-12-09 12:51:15.783000
+//  2000000000,2020-09-17 15:56:02.782000
+
+
 var fs = require( 'fs' )
-var path = require( 'path' )
 var util = require( 'util' )
 var program = require( 'commander' )
 var csvParser = require( 'csv-parse/lib/sync' )
@@ -13,8 +18,6 @@ program
     .usage( 'options' )
     .option( '-c, --csvfile [csvfile]', 'csvfile' )
     .parse( process.argv )
-
-var exitValue = 0
 
 var calendarMonthsMap = new Map()
 var monthNum = 1;
@@ -51,8 +54,7 @@ if ( program.csvfile )
 }
 else
 {
-    var stdinBuffer = fs.readFileSync( 0 ) // STDIN_FILENO = 0
-    data = stdinBuffer.toString().trim()
+    data = process.stdin.toString().trim()
 }
 
 var records = csvParser( data, { columns: true } )
@@ -122,7 +124,10 @@ function produceReport( somethingToReport )
             }
         } );
     }
+
+    process.exitCode = 0
 }
 
+process.exitCode = 1
 initYearMonthMap()
 produceReport( buildStatistics( records ) )
