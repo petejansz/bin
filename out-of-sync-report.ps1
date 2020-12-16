@@ -2,6 +2,12 @@
     Script Sum count of logins per/month from CSV file format:
         PLAYER_ID,LAST_LOGIN_DATE
         0001172108,2017-02-01 03:31:27
+
+// Use with \Projects\igt\pd\branches\sql\list-contract_identity, last login_date.sql'
+//  1000006528,2020-12-04 11:43:33.148000
+//  1000006529,2020-12-09 12:51:15.783000
+//  2000000000,2020-09-17 15:56:02.782000
+
     Author: Pete Jansz, IGT, Oct 2017
 #>
 
