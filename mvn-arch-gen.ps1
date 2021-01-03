@@ -1,4 +1,4 @@
-# Maven generate J2EE structured Java application with Junit and pom.xml
+# PowerShell wrapper script to Maven generate J2EE structured Java application with Junit and pom.xml
 # Example install a jar to my Maven m2.
 param
 (
